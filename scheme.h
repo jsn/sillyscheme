@@ -39,6 +39,11 @@ struct scm_scanner ;
 scm_val     scm_read(struct scm_scanner *sc, scm_val list) ;
 struct      scm_scanner *scm_create_scanner(FILE *fp) ;
 void        scm_print(scm_val v, FILE *fp) ;
+char        *intern(const char *s) ;
+struct cell *mkcell(int type) ;
+scm_val     list_p(scm_val v) ;
+scm_val     cons(scm_val car, scm_val cdr) ;
+
 void        die(const char *fmt, ...) ;
 
 #define ASSERT(x) if (!(x)) die("failed: %s, %d\n", __FILE__, __LINE__)

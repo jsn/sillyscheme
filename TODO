@@ -10,6 +10,5 @@ Big things:
 Next up:
 ========
 1. Eval:
-  * symbols
-  * hashes?
+  * symbols [x]
   * env

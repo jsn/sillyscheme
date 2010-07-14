@@ -28,13 +28,6 @@ static scm_val parse_fixnum(const char *s) {
     return v ;
 }
 
-static struct cell *mkcell(int type) {
-    struct cell *c = malloc(sizeof(*c)) ;
-    ENSURE(c, "malloc()") ;
-    c->type = type ;
-    return c ;
-}
-
 static scm_val parse_float(const char *s) {
     scm_val v ;
     char *ep ;
@@ -48,23 +41,11 @@ static scm_val parse_float(const char *s) {
 static scm_val parse_string(const char *s, int type) {
     scm_val v ;
     struct cell *c = mkcell(type) ;
-    ENSURE(c->data.cons.car.p = strdup(s), "strdup()") ;
+    c->data.cons.car.p = (type == STRING ? strdup : intern)(s) ;
+    ENSURE(c->data.cons.car.p, "strdup()") ;
     c->data.cons.cdr.l = strlen(s) ;
     v.p = c ;
     return v ;
-}
-
-scm_val     list_p(scm_val v) {
-    if (EQ_P(v, NIL)) return TRUE ;
-    if (v.l & 3) return FALSE ;
-    return ((struct cell *)v.p)->type == CONS ? TRUE : FALSE ;
-}
-
-scm_val     cons(scm_val car, scm_val cdr) {
-    struct cell *c = mkcell(CONS) ;
-    c->data.cons.car = car ;
-    c->data.cons.cdr = cdr ;
-    return (scm_val)((void *)c) ;
 }
 
 static scm_val parse_quoted(struct scm_scanner *sc, const char *sym) {
