@@ -37,7 +37,7 @@ struct cell {
 struct scm_scanner ;
 
 scm_val     scm_read(struct scm_scanner *sc, scm_val list) ;
-struct scm_scanner *scm_create_scanner(FILE *fp) ;
+struct      scm_scanner *scm_create_scanner(FILE *fp) ;
 void        scm_print(scm_val v, FILE *fp) ;
 void        die(const char *fmt, ...) ;
 

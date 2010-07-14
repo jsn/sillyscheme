@@ -1,5 +1,4 @@
 #include "scheme.h"
-#include "scanner.h"
 
 int main (int ac, char const* av[]) {
     struct scm_scanner *scanner = scm_create_scanner(stdin) ;
