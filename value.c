@@ -6,13 +6,22 @@
 size_t  nsyms ;
 char    *syms[MAX_SYMBOL] ;
 
-char    *intern(const char *s) {
+scm_val intern(const char *s) {
     size_t  i ;
 
-    for (i = 0; i < nsyms; i ++) if (strcmp(syms[i], s) == 0) return syms[i] ;
+    for (i = 0; i < nsyms; i ++)
+        if (strcmp(syms[i], s) == 0) return MKTAG(i, SYMBOL) ;
     ENSURE(syms[nsyms] = strdup(s), "strdup()") ;
     ASSERT(nsyms < MAX_SYMBOL) ;
-    return syms[nsyms ++] ;
+    nsyms ++ ;
+    return MKTAG(nsyms - 1, SYMBOL) ;
+}
+
+const char  *sym_to_string(scm_val v) {
+    int     i = UNTAG(v) ;
+    ASSERT(TAG(v) == SYMBOL) ;
+    ASSERT(i >= 0 && i < nsyms) ;
+    return syms[i] ;
 }
 
 struct cell *mkcell(int type) {
@@ -22,9 +31,18 @@ struct cell *mkcell(int type) {
     return c ;
 }
 
+int         type_of(scm_val v) {
+    return TAG(v) == 0 ?
+        (NULL_P(v) ? NONE : ((struct cell *)v.p)->type) : TAG(v) ;
+}
+
+scm_val     pair_p(scm_val v) {
+    return NULL_P(v) ? FALSE : list_p(v) ;
+}
+
 scm_val     list_p(scm_val v) {
     if (EQ_P(v, NIL)) return TRUE ;
-    if (v.l & 3) return FALSE ;
+    if (TAG(v)) return FALSE ;
     return ((struct cell *)v.p)->type == CONS ? TRUE : FALSE ;
 }
 

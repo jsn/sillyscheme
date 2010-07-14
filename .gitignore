@@ -1,5 +1,6 @@
 *.o
 .*
 main
+runtests
 scanner.c
 scanner.h
