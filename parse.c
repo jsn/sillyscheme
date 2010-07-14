@@ -84,8 +84,16 @@ scm_val     scm_read(struct scm_scanner *sc, scm_val list) {
                 break ;
             }
 
-            if (*sc->extra == '\'') {
-                v = cons(parse_string("quote", SYMBOL),
+            if (*sc->extra == '\'' || *sc->extra == '`') {
+                const char *sym = *sc->extra == '`' ? "quasiquote" : "quote" ;
+                v = cons(parse_string(sym, SYMBOL),
+                        cons(scm_read(sc, NIL), NIL)) ;
+                break ;
+            }
+
+            if (*sc->extra == ',') {
+                const char *sym = sc->extra[1] ? "unquote-splicing" : "unquote";
+                v = cons(parse_string(sym, SYMBOL),
                         cons(scm_read(sc, NIL), NIL)) ;
                 break ;
             }

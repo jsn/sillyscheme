@@ -11,7 +11,7 @@
 %option reentrant header-file="scanner.h" prefix="scml_" noyywrap
 %x string
 
-WORD   [^ \t\n\r\"\'\(\)\#;]
+WORD   [^ \t\n\r\"\'`,\(\)\#;]
 
 %%
 
@@ -21,7 +21,7 @@ WORD   [^ \t\n\r\"\'\(\)\#;]
 [-+]([0-9]+("."[0-9]*)?[eE][+-]?[1-9][0-9]*)    RETVAL(FLOAT)
 ";"[^\n]*\n                                     /* Eat up one-line comments. */
 [ \t\n]+	                                /* Eat up white space. */
-\'|\(|\)|\.                                     RETVAL(SPECIAL)
+\'|\(|\)|\.|\`|",@"|\,                          RETVAL(SPECIAL)
 {WORD}+                                         RETVAL(SYMBOL)
 \#[tT]                                          RETVAL(BOOL)
 \#[fF]                                          {*yyextra = NULL;return BOOL;}
