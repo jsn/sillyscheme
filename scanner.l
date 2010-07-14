@@ -21,10 +21,12 @@ WORD   [^ \t\n\r\"\'\(\)\#;]
 [-+]([0-9]+("."[0-9]*)?[eE][+-]?[1-9][0-9]*)    RETVAL(FLOAT)
 ";"[^\n]*\n                                     /* Eat up one-line comments. */
 [ \t\n]+	                                /* Eat up white space. */
+\'|\(|\)|\.                                     RETVAL(SPECIAL)
 {WORD}+                                         RETVAL(SYMBOL)
+\#[tT]                                          RETVAL(BOOL)
+\#[fF]                                          {*yyextra = NULL;return BOOL;}
 "#\\".                                          RETVAL(CHAR)
 \"   { BEGIN string ; }
-\'|\(|\)                                        RETVAL(SPECIAL)
 <string>([^\\\"]|\\.)*                          RETVAL(STRING)
 <string>\" BEGIN(INITIAL) ;
 .	                                        RETVAL(1000)
