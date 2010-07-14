@@ -4,14 +4,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-enum sc_types {
-    NONE, FIXNUM, FLOAT, CHAR, STRING, SYMBOL, SPECIAL
+enum scm_types { NONE, FIXNUM, CHAR, SYMBOL, FLOAT, STRING, SPECIAL } ;
+
+union _scm_val {
+    long     l ;
+    void    *p ;
 } ;
 
-struct sc_atom {
-} ;
+typedef union _scm_val scm_val ;
 
-void        scm_read(const char *fname) ;
+struct scm_scanner ;
+
+scm_val     scm_read(struct scm_scanner *sc) ;
+struct scm_scanner *scm_create_scanner(FILE *fp) ;
+void        scm_print(scm_val v, FILE *fp) ;
 void        die(const char *fmt, ...) ;
 
 #define ASSERT(x) if (!(x)) die("failed: %s, %d\n", __FILE__, __LINE__)
