@@ -67,6 +67,10 @@ scm_val     cons(scm_val car, scm_val cdr) {
     return (scm_val)((void *)c) ;
 }
 
+static scm_val parse_quoted(struct scm_scanner *sc, const char *sym) {
+    return cons(parse_string(sym, SYMBOL), cons(scm_read(sc, NIL), NIL)) ;
+}
+
 scm_val     scm_read(struct scm_scanner *sc, scm_val list) {
     int     token = scml_lex(sc->scanner) ;
     scm_val v ;
@@ -79,44 +83,32 @@ scm_val     scm_read(struct scm_scanner *sc, scm_val list) {
         case STRING:    v = parse_string(sc->extra, STRING) ; break ;
         case SYMBOL:    v = parse_string(sc->extra, SYMBOL) ; break ;
         case SPECIAL:
-            if (*sc->extra == '(') {
-                v = scm_read(sc, TRUE) ;
-                break ;
+            switch(*sc->extra) {
+                case '(':  v = scm_read(sc, TRUE) ; break ;
+                case '\'': v = parse_quoted(sc, "quote") ; break ;
+                case '`':  v = parse_quoted(sc, "quasiquote") ; break ;
+                case ',':
+                    v = parse_quoted(sc,
+                            sc->extra[1] ? "unquote-splicing" : "unquote") ;
+                    break ;
+                case ')':
+                    if (EQ_P(list, NIL)) die("unexpected '%c'\n", *sc->extra) ;
+                    if (EQ_P(list, TRUE)) return NIL ;
+                    ASSERT(EQ_P(list_p(list), TRUE)) ;
+                    ((struct cell *)list.p)->data.cons.cdr = NIL ;
+                    return list ;
+                case '.':
+                    if (EQ_P(list, NIL)) die("unexpected '%c'\n", *sc->extra) ;
+                    ASSERT(EQ_P(list_p(list), TRUE)) ;
+                    ((struct cell *)list.p)->data.cons.cdr = scm_read(sc, NIL) ;
+                    if (!EQ_P(scm_read(sc, TRUE), NIL))
+                        die("bad dotted pair\n") ;
+                    return list ;
+                default:
+                    die("unknown special %c\n", *sc->extra) ;
             }
+            break ;
 
-            if (*sc->extra == '\'' || *sc->extra == '`') {
-                const char *sym = *sc->extra == '`' ? "quasiquote" : "quote" ;
-                v = cons(parse_string(sym, SYMBOL),
-                        cons(scm_read(sc, NIL), NIL)) ;
-                break ;
-            }
-
-            if (*sc->extra == ',') {
-                const char *sym = sc->extra[1] ? "unquote-splicing" : "unquote";
-                v = cons(parse_string(sym, SYMBOL),
-                        cons(scm_read(sc, NIL), NIL)) ;
-                break ;
-            }
-
-            if (EQ_P(list, NIL)) die("unexpected '%c'\n", *sc->extra) ;
-
-            if (*sc->extra == ')') {
-                if (EQ_P(list, TRUE)) return NIL ;
-                ASSERT(EQ_P(list_p(list), TRUE)) ; 
-                ((struct cell *)list.p)->data.cons.cdr = NIL ;
-                return list ;
-            }
-
-            if (*sc->extra == '.') {
-                scm_val paren ;
-                ASSERT(EQ_P(list_p(list), TRUE)) ; 
-                ((struct cell *)list.p)->data.cons.cdr = scm_read(sc, NIL) ;
-                paren = scm_read(sc, TRUE) ;
-                if (!EQ_P(paren, NIL)) die("bad dotted pair\n") ;
-                return list ;
-            }
-
-            die("unknown special %d\n", *sc->extra) ;
         default:
             die("lexer says hi: %d (%s)\n", token, sc->extra) ;
     }
