@@ -1,6 +1,7 @@
 #include "scheme.h"
+#include "scanner.h"
 
 int main (int ac, char const* av[]) {
-    printf("hello, world\n") ;
+    scm_read(NULL) ;
     return 0;
 }
