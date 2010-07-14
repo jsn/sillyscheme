@@ -1,0 +1,15 @@
+
+Big things:
+===========
+
+* read    [x]
+* parse   [x]
+* eval    [ ]
+* print   [x]
+
+Next up:
+========
+1. Eval:
+  * symbols
+  * hashes?
+  * env
