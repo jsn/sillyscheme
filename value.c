@@ -13,8 +13,7 @@ scm_val intern(const char *s) {
         if (strcmp(syms[i], s) == 0) return MKTAG(i, SYMBOL) ;
     ENSURE(syms[nsyms] = strdup(s), "strdup()") ;
     ASSERT(nsyms < MAX_SYMBOL) ;
-    nsyms ++ ;
-    return MKTAG(nsyms - 1, SYMBOL) ;
+    return MKTAG(nsyms ++, SYMBOL) ;
 }
 
 const char  *sym_to_string(scm_val v) {
@@ -47,9 +46,10 @@ scm_val     list_p(scm_val v) {
 }
 
 scm_val     cons(scm_val car, scm_val cdr) {
-    struct cell *c = mkcell(CONS) ;
-    c->data.cons.car = car ;
-    c->data.cons.cdr = cdr ;
-    return (scm_val)((void *)c) ;
+    scm_val v ;
+    v.p = mkcell(CONS) ;
+    CAR(v) = car ;
+    CDR(v) = cdr ;
+    return v ;
 }
 

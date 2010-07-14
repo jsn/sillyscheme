@@ -17,15 +17,15 @@ struct scm_scanner  *scm_create_scanner(FILE *fp) {
     return sc ;
 }
 
+void                scm_destroy_scanner(struct scm_scanner *sc) { free(sc) ; }
+
 static scm_val parse_fixnum(const char *s) {
-    scm_val v ;
     long l ;
     char *ep ;
 
     l = strtol(s, &ep, 0) ;
     ASSERT(!*ep) ;
-    v = MKTAG(l, FIXNUM) ;
-    return v ;
+    return MKTAG(l, FIXNUM) ;
 }
 
 static scm_val parse_float(const char *s) {
@@ -40,11 +40,9 @@ static scm_val parse_float(const char *s) {
 
 static scm_val parse_string(const char *s) {
     scm_val v ;
-    struct cell *c = mkcell(STRING) ;
-    c->data.cons.car.p = strdup(s) ;
-    ENSURE(c->data.cons.car.p, "strdup()") ;
-    c->data.cons.cdr.l = strlen(s) ;
-    v.p = c ;
+    v.p = mkcell(STRING) ;
+    ENSURE(CAR(v).p = strdup(s), "strdup()") ;
+    CDR(v).l = strlen(s) ;
     return v ;
 }
 
@@ -105,30 +103,25 @@ static void print_list(scm_val v, FILE *fp, int no_parens) {
     if (!no_parens) fprintf(fp, "(") ;
     if (!NULL_P(v)) {
         if (no_parens) fprintf(fp, " ") ;
-        struct cell *c = v.p ;
-        scm_print(c->data.cons.car, fp) ;
-        if (LIST_P(c->data.cons.cdr)) {
-            print_list(c->data.cons.cdr, fp, 1) ;
+        scm_print(CAR(v), fp) ;
+        if (LIST_P(CDR(v))) {
+            print_list(CDR(v), fp, 1) ;
         } else {
             fprintf(fp, " . ") ;
-            scm_print(c->data.cons.cdr, fp) ;
+            scm_print(CDR(v), fp) ;
         }
     }
     if (!no_parens) fprintf(fp, ")") ;
 }
 
 void        scm_print(scm_val v, FILE *fp) {
-    if (LIST_P(v)) {
-        print_list(v, fp, 0) ;
-        return ;
-    }
+
+    if (LIST_P(v)) return print_list(v, fp, 0) ;
 
     switch(TAG(v)) {
         case BOOL:   fprintf(fp, "#%c", UNTAG(v) ? 't' : 'f') ; break ;
         case FIXNUM: fprintf(fp, "%ld", UNTAG(v)) ; break ;
-        case SYMBOL:
-            fprintf(fp, "%s", sym_to_string(v)) ;
-            break ;
+        case SYMBOL: fprintf(fp, "%s", sym_to_string(v)) ; break ;
         case CHAR: {
             int c = UNTAG(v) ;
             if (c < 0) fprintf(fp, "#\\eof") ;
@@ -153,7 +146,7 @@ void        parse_tests(void) {
     FILE    *fp ;
     struct scm_scanner *scanner ;
 
-    printf(";; --- PARSE TESTS --- ;;\n") ;
+    printf("\n;; --- PARSE TESTS --- ;;\n") ;
 
     ASSERT(fp = fopen("tests/parse.scm", "r")) ;
     scanner = scm_create_scanner(fp) ;
@@ -164,5 +157,6 @@ void        parse_tests(void) {
         printf("\n;;;;\n") ;
         if (EQ_P(v, SCM_EOF)) break ;
     }
+    scm_destroy_scanner(scanner) ;
     fflush(stdout) ;
 }

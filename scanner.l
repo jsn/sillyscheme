@@ -15,7 +15,7 @@ WORD   [^ \t\n\r\"\'`,\(\)\#;]
 
 [-+]?[1-9][0-9]*                                RETVAL(FIXNUM)
 [-+]?([0-9]+"."[0-9]*) |
-[-+]([0-9]+("."[0-9]*)?[eE][+-]?[1-9][0-9]*)    RETVAL(FLOAT)
+[-+]?([0-9]+("."[0-9]*)?[eE][+-]?[1-9][0-9]*)   RETVAL(FLOAT)
 ";"[^\n]*\n                                     /* Eat up one-line comments. */
 [ \t\n]+	                                /* Eat up white space. */
 \'|\(|\)|\.|\`|",@"|\,                          RETVAL(SPECIAL)

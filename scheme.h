@@ -32,7 +32,7 @@ union _scm_val {
 typedef union _scm_val scm_val ;
 
 struct cell {
-    int type ;
+    short type, flags ;
     union {
         struct { scm_val car, cdr ; } cons ;
         double f ;
@@ -41,9 +41,12 @@ struct cell {
 
 struct scm_scanner ;
 
-scm_val     scm_read(struct scm_scanner *sc, scm_val list) ;
 struct      scm_scanner *scm_create_scanner(FILE *fp) ;
+void        scm_destroy_scanner(struct scm_scanner *sc) ;
+
+scm_val     scm_read(struct scm_scanner *sc, scm_val list) ;
 void        scm_print(scm_val v, FILE *fp) ;
+
 scm_val     intern(const char *s) ;
 const char  *sym_to_string(scm_val v) ;
 struct cell *mkcell(int type) ;
@@ -62,6 +65,9 @@ scm_val     assq(scm_val alist, scm_val key) ;
 #define     CAAR(v) CAR(CAR(v))
 #define     CADR(v) CDR(CAR(v))
 
+scm_val     env_create(scm_val parent) ;
+scm_val     env_get_pair(scm_val env, scm_val key, int force, int up) ;
+scm_val     env_get(scm_val env, scm_val key) ;
 #define env_define(env, key, val) CDR(env_get_pair(env, key, 1, 0)) = val
 #define env_set(env, key, val) CDR(env_get_pair(env, key, 1, 1)) = val
 

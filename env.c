@@ -1,15 +1,15 @@
 #include "scheme.h"
 
 scm_val     env_create(scm_val parent) {
-    scm_val e = cons(NIL, parent) ;
     ASSERT(LIST_P(parent)) ;
-    return e ;
+    return cons(NIL, parent) ;
 }
 
 scm_val      env_get_pair(scm_val env, scm_val key, int force, int up) {
-    scm_val pair, alist = CAR(env) ;
+    scm_val pair ;
+
     ASSERT(LIST_P(env)) ;
-    pair = assq(alist, key) ;
+    pair = assq(CAR(env), key) ;
 
     if (EQ_P(pair, FALSE)) {
         if (up && PAIR_P(CDR(env)))

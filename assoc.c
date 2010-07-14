@@ -31,4 +31,5 @@ void        assoc_tests(void) {
     k = scm_read(scanner, NIL) ;
     SCM_DEBUG(k, "k2") ;
     SCM_DEBUG(assq(alist, k), "v2") ;
+    scm_destroy_scanner(scanner) ;
 }
