@@ -34,21 +34,33 @@ scm_val             scm_eval(struct evaluator *scm) {
                 return FALSE ;
         }
 
-        if (NULL_P(scm->s)) return TRUE ;
-        
-        /* there was a cons */
-        if (NULL_P(CDAR(scm->s)) && SPECIAL_P(scm->d)) {
-            /* syntax detected */
-            SCM_DEBUG(cons(scm->d, CAAR(scm->s)), "special") ;
-            die("syntax NI\n") ;
-        }
 
         for (;;) { /* unwind */
+            if (NULL_P(scm->s)) return TRUE ;
+
+            /* there was a cons */
+
+            if (NULL_P(CDAR(scm->s)) && SYNTAX_P(scm->d)) {
+                /* syntax detected */
+                scm_val code = scm->d, args = CAAR(scm->s) ;
+                scm->s = CDR(scm->s) ;
+
+                if (code.c->flags & FL_BUILTIN) {
+                    scm_val (*f)() = CAR(code).p ;
+                    scm->d = f(args, scm->e, CDR(code)) ;
+                    continue ;
+                } else {
+                    SCM_DEBUG(cons(code, args), "syntax") ;
+                    die("syntax non-builtin NI\n") ;
+                }
+                continue ;
+            }
+
             CDAR(scm->s) = cons(scm->d, CDAR(scm->s)) ;
 
             if (NULL_P(CAAR(scm->s))) {
                 /* callseq evaluated */
-                scm_val callseq = fn_reverse_bang(CDAR(scm->s), scm->e, NIL) ;
+                scm_val callseq = reverse_bang(CDAR(scm->s)) ;
                 scm_val code = CAR(callseq), args = CDR(callseq) ;
                 scm->s = CDR(scm->s) ;
 
@@ -56,7 +68,6 @@ scm_val             scm_eval(struct evaluator *scm) {
                 if (code.c->flags & FL_BUILTIN) {
                     scm_val (*f)() = CAR(code).p ;
                     scm->d = f(args, scm->e, CDR(code)) ;
-                    if (NULL_P(scm->s)) return TRUE ;
                 } else {
                     die("apply non-builtin NI\n") ;
                 }

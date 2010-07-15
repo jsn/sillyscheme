@@ -1,8 +1,10 @@
 #include "scheme.h"
 
 #define FLOAT_OF(x) (type_of(x) == FLOAT ? x.c->data.f : (double)UNTAG(x))
+#define DEFINE_FUNC(name)   \
+    scm_val name(scm_val args, scm_val env, scm_val hint)
 
-scm_val fn_foldl_arith(scm_val args, scm_val env, scm_val hint) {
+DEFINE_FUNC(fn_foldl_arith) {
     scm_val v ;
     int     got_double = 0 ;
     double  rv = 0 ;
@@ -35,7 +37,7 @@ scm_val fn_foldl_arith(scm_val args, scm_val env, scm_val hint) {
     return got_double ? make_float(rv) : MKTAG((long)rv, FIXNUM) ;
 }
 
-scm_val     fn_reverse_bang(scm_val args, scm_val env, scm_val hint) {
+scm_val     reverse_bang(scm_val args) {
     scm_val v = NIL, tmp ;
 
     while (!NULL_P(args)) {
@@ -47,15 +49,56 @@ scm_val     fn_reverse_bang(scm_val args, scm_val env, scm_val hint) {
     return v ;
 }
 
-#define DEF_PROC(name, func, hint)  \
+DEFINE_FUNC(fn_reverse_bang) { return reverse_bang(CAR(args)) ; }
+
+DEFINE_FUNC(fn_car) { return CAR(CAR(args)) ; }
+DEFINE_FUNC(fn_cdr) { return CDR(CAR(args)) ; }
+DEFINE_FUNC(fn_caar) { return CAAR(CAR(args)) ; }
+DEFINE_FUNC(fn_cadr) { return CADR(CAR(args)) ; }
+DEFINE_FUNC(fn_cdar) { return CDAR(CAR(args)) ; }
+DEFINE_FUNC(fn_cddr) { return CDDR(CAR(args)) ; }
+
+DEFINE_FUNC(fn_cons) { return cons(CAR(args), CADR(args)) ; }
+DEFINE_FUNC(fn_display) { scm_print(CAR(args), stdout) ; return FALSE ; }
+DEFINE_FUNC(fn_newline) { printf("\n") ; return FALSE ; }
+
+DEFINE_FUNC(syn_quote) { return CAR(args) ; }
+DEFINE_FUNC(syn_define) {
+    env_define(env, CAR(args), CADR(args)) ;
+    return CADR(args) ;
+}
+
+#define DEF_PROC_CHAR(name, func, hint)  \
     env_define(env, intern(name), make_builtin(0, func, MKTAG(hint, CHAR)))
 
+#define DEF_PROC(name, func) \
+    env_define(env, intern(name), make_builtin(0, func, NIL))
+
+#define DEF_SYNTAX_CHAR(name, func, hint)  \
+    env_define(env, intern(name), make_builtin(1, func, MKTAG(hint, CHAR)))
+
+#define DEF_SYNTAX(name, func) \
+    env_define(env, intern(name), make_builtin(1, func, NIL))
+
 void        define_toplevels(scm_val env) {
-    DEF_PROC("+", fn_foldl_arith, '+') ;
-    DEF_PROC("-", fn_foldl_arith, '-') ;
-    DEF_PROC("*", fn_foldl_arith, '*') ;
-    DEF_PROC("/", fn_foldl_arith, '/') ;
-    DEF_PROC("reverse!", fn_reverse_bang, 0) ;
+    DEF_PROC_CHAR("+", fn_foldl_arith, '+') ;
+    DEF_PROC_CHAR("-", fn_foldl_arith, '-') ;
+    DEF_PROC_CHAR("*", fn_foldl_arith, '*') ;
+    DEF_PROC_CHAR("/", fn_foldl_arith, '/') ;
+    DEF_PROC("reverse!", fn_reverse_bang) ;
+    DEF_PROC("car", fn_car) ;
+    DEF_PROC("cdr", fn_cdr) ;
+    DEF_PROC("caar", fn_caar) ;
+    DEF_PROC("cadr", fn_cadr) ;
+    DEF_PROC("cdar", fn_cdar) ;
+    DEF_PROC("cddr", fn_cddr) ;
+    DEF_PROC("cons", fn_cons) ;
+    DEF_PROC("display", fn_display) ;
+    DEF_PROC("newline", fn_newline) ;
+
+    DEF_SYNTAX_CHAR("quote", syn_quote, '\'') ;
+    DEF_SYNTAX_CHAR("pseudoquote", syn_quote, '`') ;
+    DEF_SYNTAX("define", syn_define) ;
 }
 
 void        builtin_tests(void) {
@@ -71,9 +114,11 @@ void        builtin_tests(void) {
     SCM_DEBUG(fn_foldl_arith(v, e, MKTAG('/', CHAR)), "(/ 6 3)") ;
     v = cons(MKTAG(9, FIXNUM), v) ;
     SCM_DEBUG(fn_foldl_arith(v, e, MKTAG('*', CHAR)), "(* 9 6 3)") ;
-    v = fn_reverse_bang(v, e, NIL) ;
+    v = fn_reverse_bang(cons(v, NIL), e, NIL) ;
     SCM_DEBUG(v, "(reverse! '(9 6 3))") ;
-    SCM_DEBUG(v = fn_reverse_bang(CDR(v), e, NIL), "(reverse! '(6 9))") ;
-    SCM_DEBUG(v = fn_reverse_bang(CDR(v), e, NIL), "(reverse! '(6))") ;
-    SCM_DEBUG(fn_reverse_bang(NIL, e, NIL), "(reverse! '())") ;
+    v = fn_reverse_bang(cons(CDR(v), NIL), e, NIL) ;
+    SCM_DEBUG(v, "(reverse! '(6 9))") ;
+    v = fn_reverse_bang(cons(CDR(v), NIL), e, NIL) ;
+    SCM_DEBUG(v, "(reverse! '(6))") ;
+    SCM_DEBUG(fn_reverse_bang(cons(NIL, NIL), e, NIL), "(reverse! '())") ;
 }

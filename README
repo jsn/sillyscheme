@@ -14,7 +14,6 @@ DEFINITION for non-BUILTIN is a cons(formals, body)
 DEFINITION for BUILTIN is a cons(CFUNC, hint)
 CFUNC is an scm_val (*cfunc)(scm_val params, scm_val env, scm_val hint)
 
-
 =====
 TODO
 =====
@@ -30,9 +29,9 @@ Big things:
   * proc    [-]
     * native    [x]
     * compiled  [ ]
-    * syntax    [ ]
+    * syntax    [-]
 * print   [x]
 
 Next up:
 --------
-Syntax
+Complete syntax

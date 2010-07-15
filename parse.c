@@ -131,11 +131,11 @@ void        scm_print(scm_val v, FILE *fp) {
                     fprintf(fp, "\"%s\"", (char *)v.c->data.cons.car.p) ;
                     break ;
                 case PROCEDURE:
-                    fprintf(fp, "<%s%s ",
+                    fprintf(fp, "#<%s%s ",
                             ((v.c->flags & FL_BUILTIN) ? "builtin " : ""),
                             ((v.c->flags & FL_SYNTAX) ? "syntax" :"procedure"));
                     if (v.c->flags & FL_BUILTIN)
-                        fprintf(fp, " [%p]>", CAR(v).p) ;
+                        fprintf(fp, "[%p]>", CAR(v).p) ;
                     else {
                         scm_print(CAR(v), fp) ;
                         fprintf(fp, ">") ;

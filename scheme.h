@@ -77,12 +77,14 @@ scm_val     assq(scm_val alist, scm_val key) ;
 #define     CDR(v)      ((v).c)->data.cons.cdr
 #define     CAAR(v)     CAR(CAR(v))
 #define     CDAR(v)     CDR(CAR(v))
+#define     CADR(v)     CAR(CDR(v))
+#define     CDDR(v)     CDR(CDR(v))
 #define     CAAAR(v)    CAR(CAAR(v))
 #define     CDAAR(v)    CDR(CAAR(v))
 
 #define     FOREACH(v, list)    for (v = list; !NULL_P(v); v = CDR(v))
 
-#define     SPECIAL_P(x)   EQ_P(x, TRUE)
+#define     SYNTAX_P(x) (type_of(x) == PROCEDURE && ((x).c->flags & FL_SYNTAX))
 
 scm_val     env_create(scm_val parent) ;
 scm_val     env_get_pair(scm_val env, scm_val key, int force, int up) ;
@@ -94,7 +96,7 @@ struct evaluator    *scm_create_evaluator(scm_val code) ;
 void                define_toplevels(scm_val env) ;
 void                scm_destroy_evaluator(struct evaluator *scm) ;
 scm_val             scm_eval(struct evaluator *scm) ;
-scm_val             fn_reverse_bang(scm_val args, scm_val env, scm_val hint) ;
+scm_val             reverse_bang(scm_val args) ;
 
 void        die(const char *fmt, ...) ;
 

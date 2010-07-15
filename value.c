@@ -57,6 +57,7 @@ scm_val     make_builtin(
         scm_val hint) {
     scm_val v = mkcell(PROCEDURE) ;
     v.c->flags |= FL_BUILTIN ;
+    if (syntax) v.c->flags |= FL_SYNTAX ;
     CAR(v).p = f ;
     CDR(v) = hint ;
     return v ;
