@@ -1,4 +1,5 @@
 #include "scheme.h"
+
 struct evaluator    *scm_create_evaluator(scm_val code) {
     struct evaluator *ev = malloc(sizeof(*ev)) ;
     ASSERT(ev) ;
@@ -6,6 +7,7 @@ struct evaluator    *scm_create_evaluator(scm_val code) {
     ev->c = code ;
     ev->d = FALSE ;
     ev->e = env_create(NIL) ;
+    define_toplevels(ev->e) ;
     return ev ;
 }
 
@@ -41,12 +43,26 @@ scm_val             scm_eval(struct evaluator *scm) {
             die("syntax NI\n") ;
         }
 
-        CDAR(scm->s) = cons(scm->d, CDAR(scm->s)) ;
+        for (;;) { /* unwind */
+            CDAR(scm->s) = cons(scm->d, CDAR(scm->s)) ;
 
-        if (NULL_P(CAAR(scm->s))) {
-            /* callseq evaluated */
-            SCM_DEBUG(CDAR(scm->s), "callseq") ;
-            die("apply NI\n") ;
+            if (NULL_P(CAAR(scm->s))) {
+                /* callseq evaluated */
+                scm_val callseq = fn_reverse_bang(CDAR(scm->s), scm->e, NIL) ;
+                scm_val code = CAR(callseq), args = CDR(callseq) ;
+                scm->s = CDR(scm->s) ;
+
+                ASSERT(type_of(code) == PROCEDURE) ;
+                if (code.c->flags & FL_BUILTIN) {
+                    scm_val (*f)() = CAR(code).p ;
+                    scm->d = f(args, scm->e, CDR(code)) ;
+                    if (NULL_P(scm->s)) return TRUE ;
+                } else {
+                    die("apply non-builtin NI\n") ;
+                }
+                continue ;
+            }
+            break ;
         }
 
         scm->c = CAAAR(scm->s) ;

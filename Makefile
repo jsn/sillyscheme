@@ -1,5 +1,5 @@
 CFLAGS = -Wall # -O3 -fomit-frame-pointer
-OBJS =  scanner.o value.o util.o parse.o assoc.o env.o eval.o
+OBJS =  scanner.o value.o util.o parse.o assoc.o env.o eval.o builtin.o
 LIBS = -lfl
 
 all: main runtests

@@ -29,18 +29,14 @@ static scm_val parse_fixnum(const char *s) {
 }
 
 static scm_val parse_float(const char *s) {
-    scm_val v ;
     char *ep ;
-
-    v.p = mkcell(FLOAT) ;
-    ((struct cell *)v.p)->data.f = strtod(s, &ep) ;
+    scm_val v = make_float(strtod(s, &ep)) ;
     ASSERT(!*ep) ;
     return v ;
 }
 
 static scm_val parse_string(const char *s) {
-    scm_val v ;
-    v.p = mkcell(STRING) ;
+    scm_val v = mkcell(STRING) ;
     ENSURE(CAR(v).p = strdup(s), "strdup()") ;
     CDR(v).l = strlen(s) ;
     return v ;
@@ -129,14 +125,25 @@ void        scm_print(scm_val v, FILE *fp) {
             break ;
         }
         default: {
-            struct cell *c = v.p ;
-            switch (c->type) {
-                case FLOAT: fprintf(fp, "%f", c->data.f) ; break ;
+            switch (v.c->type) {
+                case FLOAT: fprintf(fp, "%f", v.c->data.f) ; break ;
                 case STRING:
-                    fprintf(fp, "\"%s\"", (char *)c->data.cons.car.p) ;
+                    fprintf(fp, "\"%s\"", (char *)v.c->data.cons.car.p) ;
                     break ;
+                case PROCEDURE:
+                    fprintf(fp, "<%s%s ",
+                            ((v.c->flags & FL_BUILTIN) ? "builtin " : ""),
+                            ((v.c->flags & FL_SYNTAX) ? "syntax" :"procedure"));
+                    if (v.c->flags & FL_BUILTIN)
+                        fprintf(fp, " [%p]>", CAR(v).p) ;
+                    else {
+                        scm_print(CAR(v), fp) ;
+                        fprintf(fp, ">") ;
+                    }
+                    break ;
+
                 default:
-                    die("unknown cell type %d\n", c->type) ;
+                    die("unknown cell type %d\n", v.c->type) ;
             }
         }
     }

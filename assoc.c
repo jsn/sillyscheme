@@ -3,7 +3,7 @@
 scm_val     assq(scm_val alist, scm_val key) {
     scm_val v ;
 
-    for (v = alist; !NULL_P(v); v = CDR(v)) {
+    FOREACH(v, alist) {
         ENSURE(EQ_P(list_p(v), TRUE), "assq: not a list\n") ;
         ENSURE(PAIR_P(CAR(v)), "assq: not a pair\n") ;
         if (EQ_P(CAAR(v), key)) return CAR(v) ;

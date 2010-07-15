@@ -1,1 +1,38 @@
 This is how I waste my time.
+============================
+
+======
+DESIGN
+======
+
+LAMBDA [the ultimate failure] (tm)
+----------------------------------
+PROCEDURE is a toplevel type.
+flags used are SYNTAX, BUILTIN.
+PROCEDURE is a cons(DEFINITION, env)
+DEFINITION for non-BUILTIN is a cons(formals, body)
+DEFINITION for BUILTIN is a cons(CFUNC, hint)
+CFUNC is an scm_val (*cfunc)(scm_val params, scm_val env, scm_val hint)
+
+
+=====
+TODO
+=====
+
+Big things:
+-----------
+
+* read    [x]
+* parse   [x]
+* eval    [-]
+  * symbols [x]
+  * env     [x]
+  * proc    [-]
+    * native    [x]
+    * compiled  [ ]
+    * syntax    [ ]
+* print   [x]
+
+Next up:
+--------
+Syntax

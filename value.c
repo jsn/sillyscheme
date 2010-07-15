@@ -23,16 +23,16 @@ const char  *sym_to_string(scm_val v) {
     return syms[i] ;
 }
 
-struct cell *mkcell(int type) {
-    struct cell *c = malloc(sizeof(*c)) ;
-    ENSURE(c, "malloc()") ;
-    c->type = type ;
-    return c ;
+scm_val mkcell(int type) {
+    scm_val v ;
+    ENSURE(v.c = malloc(sizeof(struct cell)), "malloc()") ;
+    v.c->type = type ;
+    return v ;
 }
 
 int         type_of(scm_val v) {
     return TAG(v) == 0 ?
-        (NULL_P(v) ? NONE : ((struct cell *)v.p)->type) : TAG(v) ;
+        (NULL_P(v) ? NONE : v.c->type) : TAG(v) ;
 }
 
 scm_val     pair_p(scm_val v) {
@@ -42,14 +42,28 @@ scm_val     pair_p(scm_val v) {
 scm_val     list_p(scm_val v) {
     if (EQ_P(v, NIL)) return TRUE ;
     if (TAG(v)) return FALSE ;
-    return ((struct cell *)v.p)->type == CONS ? TRUE : FALSE ;
+    return v.c->type == CONS ? TRUE : FALSE ;
 }
 
 scm_val     cons(scm_val car, scm_val cdr) {
-    scm_val v ;
-    v.p = mkcell(CONS) ;
+    scm_val v = mkcell(CONS) ;
     CAR(v) = car ;
     CDR(v) = cdr ;
     return v ;
 }
 
+scm_val     make_builtin(
+        int syntax, scm_val (*f)(scm_val args, scm_val env, scm_val hint),
+        scm_val hint) {
+    scm_val v = mkcell(PROCEDURE) ;
+    v.c->flags |= FL_BUILTIN ;
+    CAR(v).p = f ;
+    CDR(v) = hint ;
+    return v ;
+}
+
+scm_val     make_float(double x) {
+    scm_val v = mkcell(FLOAT) ;
+    v.c->data.f = x ;
+    return v ;
+}

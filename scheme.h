@@ -7,7 +7,7 @@
 enum scm_types {                        /* i-something */
     NONE, FIXNUM, CHAR, BOOL, SYMBOL,   /* immediate */ 
     CONS, FLOAT, STRING,                /* indirection */
-    SPECIAL,                            /* immaterial */
+    SPECIAL, PROCEDURE                  /* immaterial */
 } ;
 
 #define TAGBITS     3
@@ -16,8 +16,9 @@ enum scm_types {                        /* i-something */
 #define UNTAG(x)    ((x).l >> TAGBITS)
 
 union _scm_val {
-    long     l ;
-    void    *p ;
+    long        l ;
+    void        *p ;
+    struct cell *c ;
 } ;
 
 #define NIL ((scm_val)0L)
@@ -39,6 +40,9 @@ struct cell {
     } data ;
 };
 
+#define FL_BUILTIN  (1 << 0)
+#define FL_SYNTAX   (1 << 1)
+
 struct evaluator {
     scm_val s, e, c, d ;
 };
@@ -53,23 +57,30 @@ void        scm_print(scm_val v, FILE *fp) ;
 
 scm_val     intern(const char *s) ;
 const char  *sym_to_string(scm_val v) ;
-struct cell *mkcell(int type) ;
+scm_val     mkcell(int type) ;
 int         type_of(scm_val v) ;
 
 scm_val     list_p(scm_val v) ;
 scm_val     pair_p(scm_val v) ;
+scm_val     make_float(double x) ;
+scm_val     make_builtin(
+        int syntax,
+        scm_val (*f)(scm_val args, scm_val env, scm_val hint),
+        scm_val hint) ;
 scm_val     cons(scm_val car, scm_val cdr) ;
 scm_val     assq(scm_val alist, scm_val key) ;
 
 #define     PAIR_P(v)   (type_of(v) == CONS)
 #define     LIST_P(v)   (type_of(v) == NONE || PAIR_P(v))
 
-#define     CAR(v)      ((struct cell *)(v).p)->data.cons.car
-#define     CDR(v)      ((struct cell *)(v).p)->data.cons.cdr
+#define     CAR(v)      ((v).c)->data.cons.car
+#define     CDR(v)      ((v).c)->data.cons.cdr
 #define     CAAR(v)     CAR(CAR(v))
 #define     CDAR(v)     CDR(CAR(v))
 #define     CAAAR(v)    CAR(CAAR(v))
 #define     CDAAR(v)    CDR(CAAR(v))
+
+#define     FOREACH(v, list)    for (v = list; !NULL_P(v); v = CDR(v))
 
 #define     SPECIAL_P(x)   EQ_P(x, TRUE)
 
@@ -80,8 +91,10 @@ scm_val     env_get(scm_val env, scm_val key) ;
 #define env_set(env, key, val) CDR(env_get_pair(env, key, 1, 1)) = val
 
 struct evaluator    *scm_create_evaluator(scm_val code) ;
+void                define_toplevels(scm_val env) ;
 void                scm_destroy_evaluator(struct evaluator *scm) ;
 scm_val             scm_eval(struct evaluator *scm) ;
+scm_val             fn_reverse_bang(scm_val args, scm_val env, scm_val hint) ;
 
 void        die(const char *fmt, ...) ;
 
@@ -97,5 +110,6 @@ void        die(const char *fmt, ...) ;
 void        env_tests(void) ;
 void        assoc_tests(void) ;
 void        parse_tests(void) ;
+void        builtin_tests(void) ;
 
 #endif
