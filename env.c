@@ -32,6 +32,34 @@ scm_val     env_get(scm_val env, scm_val key) {
     return CDR(pair) ;
 }
 
+scm_val     env_bind_formals(scm_val env, scm_val formals, scm_val values) {
+    scm_val alist = NIL ;
+    size_t  cnt = 0 ;
+
+    while (!NULL_P(formals)) {
+        ASSERT(type_of(CAR(formals)) == SYMBOL) ;
+        alist = cons(cons(CAR(formals), CAR(values)), alist) ;
+        cnt ++ ;
+
+        if (LIST_P(CDR(formals))) {
+            formals = CDR(formals) ;
+            values = CDR(values) ;
+        } else {
+            ASSERT(type_of(CDR(formals)) == SYMBOL) ;
+            alist = cons(cons(CDR(formals), CDR(values)), alist) ;
+            values = NIL ;
+            break ;
+        }
+    }
+    ASSERT(NULL_P(values)) ;
+
+    if (!NULL_P(alist)) {
+        env = env_create(env) ;
+        CAR(env) = alist ;
+    }
+    return env ;
+}
+
 void        env_tests(void) {
     scm_val e1 = env_create(NIL), e2 = env_create(e1), e3 = env_create(e2) ;
     printf("\n;; --- ENV TESTS --- ;;\n") ;

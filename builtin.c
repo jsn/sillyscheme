@@ -68,6 +68,13 @@ DEFINE_FUNC(syn_define) {
     return CADR(args) ;
 }
 
+DEFINE_FUNC(syn_lambda) {
+    scm_val proc = mkcell(PROCEDURE) ;
+    CAR(proc) = args ;
+    CDR(proc) = env ;
+    return proc ;
+}
+
 #define DEF_PROC_CHAR(name, func, hint)  \
     env_define(env, intern(name), make_builtin(0, func, MKTAG(hint, CHAR)))
 
@@ -99,6 +106,7 @@ void        define_toplevels(scm_val env) {
     DEF_SYNTAX_CHAR("quote", syn_quote, '\'') ;
     DEF_SYNTAX_CHAR("pseudoquote", syn_quote, '`') ;
     DEF_SYNTAX("define", syn_define) ;
+    DEF_SYNTAX("lambda", syn_lambda) ;
 }
 
 void        builtin_tests(void) {

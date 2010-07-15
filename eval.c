@@ -48,7 +48,6 @@ scm_val             scm_eval(struct evaluator *scm) {
                 if (code.c->flags & FL_BUILTIN) {
                     scm_val (*f)() = CAR(code).p ;
                     scm->d = f(args, scm->e, CDR(code)) ;
-                    continue ;
                 } else {
                     SCM_DEBUG(cons(code, args), "syntax") ;
                     die("syntax non-builtin NI\n") ;
@@ -69,6 +68,8 @@ scm_val             scm_eval(struct evaluator *scm) {
                     scm_val (*f)() = CAR(code).p ;
                     scm->d = f(args, scm->e, CDR(code)) ;
                 } else {
+                    scm_val formals = CAAR(code), body = CDAR(code) ;
+                    scm_val e = env_bind_formals(CDR(code), formals, args) ;
                     die("apply non-builtin NI\n") ;
                 }
                 continue ;
