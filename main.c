@@ -1,18 +1,26 @@
 #include "scheme.h"
 
 int main (int ac, char const* av[]) {
-    struct scm_scanner *scanner = scm_create_scanner(stdin) ;
-    scm_val toplevel = cons(NIL, NIL) ;
-    env_define(toplevel, intern("a"), cons(MKTAG(1, FIXNUM), MKTAG(2, FIXNUM))) ;
+    struct scm_scanner *scan = scm_create_scanner(stdin) ;
+    struct evaluator *scm = scm_create_evaluator(NIL) ;
+
+    scm_val last = intern("\%\%\%") ;
+
+    env_define(scm->e, last, FALSE) ;
 
     for (;;) {
         printf("\n> ") ;
         fflush(stdout) ;
-        scm_val v = scm_read(scanner, NIL) ;
-        if (EQ_P(v, SCM_EOF)) break ;
-        scm_print(v, stdout) ;
+        scm->c = scm_read(scan, NIL) ;
+        if (EQ_P(scm->c, SCM_EOF)) break ;
+        if (EQ_P(scm_eval(scm), FALSE))
+            printf("error: ") ;
+        else
+            env_set(scm->e, last, scm->d) ;
+        scm_print(scm->d, stdout) ;
     }
-    scm_destroy_scanner(scanner) ;
+    scm_destroy_scanner(scan) ;
+    scm_destroy_evaluator(scm) ;
     fflush(stdout) ;
     return 0;
 }

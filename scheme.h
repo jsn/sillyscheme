@@ -39,6 +39,10 @@ struct cell {
     } data ;
 };
 
+struct evaluator {
+    scm_val s, e, c, d ;
+};
+
 struct scm_scanner ;
 
 struct      scm_scanner *scm_create_scanner(FILE *fp) ;
@@ -60,16 +64,24 @@ scm_val     assq(scm_val alist, scm_val key) ;
 #define     PAIR_P(v)   (type_of(v) == CONS)
 #define     LIST_P(v)   (type_of(v) == NONE || PAIR_P(v))
 
-#define     CAR(v)  ((struct cell *)(v).p)->data.cons.car
-#define     CDR(v)  ((struct cell *)(v).p)->data.cons.cdr
-#define     CAAR(v) CAR(CAR(v))
-#define     CADR(v) CDR(CAR(v))
+#define     CAR(v)      ((struct cell *)(v).p)->data.cons.car
+#define     CDR(v)      ((struct cell *)(v).p)->data.cons.cdr
+#define     CAAR(v)     CAR(CAR(v))
+#define     CDAR(v)     CDR(CAR(v))
+#define     CAAAR(v)    CAR(CAAR(v))
+#define     CDAAR(v)    CDR(CAAR(v))
+
+#define     SPECIAL_P(x)   EQ_P(x, TRUE)
 
 scm_val     env_create(scm_val parent) ;
 scm_val     env_get_pair(scm_val env, scm_val key, int force, int up) ;
 scm_val     env_get(scm_val env, scm_val key) ;
 #define env_define(env, key, val) CDR(env_get_pair(env, key, 1, 0)) = val
 #define env_set(env, key, val) CDR(env_get_pair(env, key, 1, 1)) = val
+
+struct evaluator    *scm_create_evaluator(scm_val code) ;
+void                scm_destroy_evaluator(struct evaluator *scm) ;
+scm_val             scm_eval(struct evaluator *scm) ;
 
 void        die(const char *fmt, ...) ;
 
