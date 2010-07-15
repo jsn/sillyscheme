@@ -2,25 +2,23 @@
 
 int main (int ac, char const* av[]) {
     struct scm_scanner *scan = scm_create_scanner(stdin) ;
-    struct evaluator *scm = scm_create_evaluator(NIL) ;
+    struct evaluator *scm = scm_create_evaluator() ;
 
     scm_val last = intern("\%\%\%") ;
 
     env_define(scm->e, last, FALSE) ;
 
     for (;;) {
+        scm_val v ;
         printf("\n> ") ;
         fflush(stdout) ;
-        scm->c = scm_read(scan, NIL) ;
-        if (EQ_P(scm->c, SCM_EOF)) break ;
-        if (EQ_P(scm_eval(scm), FALSE))
-            printf("error: ") ;
-        else
-            env_set(scm->e, last, scm->d) ;
-        scm_print(scm->d, stdout) ;
+        v = scm_read(scan, NIL) ;
+        if (EQ_P(v, SCM_EOF)) break ;
+        v = scm_eval(scm, v) ;
+        env_set(scm->e, last, v) ;
+        scm_print(v, stdout) ;
     }
     scm_destroy_scanner(scan) ;
-    scm_destroy_evaluator(scm) ;
     fflush(stdout) ;
     return 0;
 }

@@ -4,10 +4,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-enum scm_types {                        /* i-something */
-    NONE, FIXNUM, CHAR, BOOL, SYMBOL,   /* immediate */ 
-    CONS, FLOAT, STRING,                /* indirection */
-    SPECIAL, PROCEDURE                  /* immaterial */
+enum scm_types {                                /* i-something */
+    NONE, FIXNUM, CHAR, BOOL, SYMBOL, SPECIAL,  /* immediate */ 
+    CONS, FLOAT, STRING,                        /* indirection */
+    PROCEDURE                                   /* immaterial */
 } ;
 
 #define TAGBITS     3
@@ -42,6 +42,7 @@ struct cell {
 
 #define FL_BUILTIN  (1 << 0)
 #define FL_SYNTAX   (1 << 1)
+#define FL_EVAL     (1 << 2)
 
 struct evaluator {
     scm_val s, e, c, d ;
@@ -81,6 +82,8 @@ scm_val     assq(scm_val alist, scm_val key) ;
 #define     CDDR(v)     CDR(CDR(v))
 #define     CAAAR(v)    CAR(CAAR(v))
 #define     CDAAR(v)    CDR(CAAR(v))
+#define     CADAR(v)    CAR(CDAR(v))
+#define     CDDAR(v)    CDR(CDAR(v))
 
 #define     FOREACH(v, list)    for (v = list; !NULL_P(v); v = CDR(v))
 
@@ -93,11 +96,11 @@ scm_val     env_get(scm_val env, scm_val key) ;
 #define env_set(env, key, val) CDR(env_get_pair(env, key, 1, 1)) = val
 scm_val     env_bind_formals(scm_val env, scm_val formals, scm_val values) ;
 
-struct evaluator    *scm_create_evaluator(scm_val code) ;
+struct evaluator    *scm_create_evaluator(void) ;
 void                define_toplevels(scm_val env) ;
-void                scm_destroy_evaluator(struct evaluator *scm) ;
-scm_val             scm_eval(struct evaluator *scm) ;
+scm_val             scm_eval(struct evaluator *scm, scm_val code) ;
 scm_val             reverse_bang(scm_val args) ;
+scm_val             reverse_append(scm_val args, scm_val head) ;
 
 void        die(const char *fmt, ...) ;
 

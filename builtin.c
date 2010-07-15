@@ -51,6 +51,16 @@ scm_val     reverse_bang(scm_val args) {
 
 DEFINE_FUNC(fn_reverse_bang) { return reverse_bang(CAR(args)) ; }
 
+scm_val     reverse_append(scm_val args, scm_val head) {
+    while (!NULL_P(args)) {
+        head = cons(CAR(args), head) ;
+        args = CDR(args) ;
+    }
+    return head ;
+}
+
+DEFINE_FUNC(fn_reverse) { return reverse_append(CAR(args), NIL) ; }
+
 DEFINE_FUNC(fn_car) { return CAR(CAR(args)) ; }
 DEFINE_FUNC(fn_cdr) { return CDR(CAR(args)) ; }
 DEFINE_FUNC(fn_caar) { return CAAR(CAR(args)) ; }
@@ -81,11 +91,12 @@ DEFINE_FUNC(syn_lambda) {
 #define DEF_PROC(name, func) \
     env_define(env, intern(name), make_builtin(0, func, NIL))
 
-#define DEF_SYNTAX_CHAR(name, func, hint)  \
-    env_define(env, intern(name), make_builtin(1, func, MKTAG(hint, CHAR)))
+#define DEF_SYNTAX_CHAR(name, flags, func, hint)  \
+    env_define(env, intern(name), \
+            make_builtin(FL_SYNTAX | flags, func, MKTAG(hint, CHAR)))
 
-#define DEF_SYNTAX(name, func) \
-    env_define(env, intern(name), make_builtin(1, func, NIL))
+#define DEF_SYNTAX(name, flags, func) \
+    env_define(env, intern(name), make_builtin(FL_SYNTAX | flags, func, NIL))
 
 void        define_toplevels(scm_val env) {
     DEF_PROC_CHAR("+", fn_foldl_arith, '+') ;
@@ -93,6 +104,7 @@ void        define_toplevels(scm_val env) {
     DEF_PROC_CHAR("*", fn_foldl_arith, '*') ;
     DEF_PROC_CHAR("/", fn_foldl_arith, '/') ;
     DEF_PROC("reverse!", fn_reverse_bang) ;
+    DEF_PROC("reverse", fn_reverse) ;
     DEF_PROC("car", fn_car) ;
     DEF_PROC("cdr", fn_cdr) ;
     DEF_PROC("caar", fn_caar) ;
@@ -103,10 +115,10 @@ void        define_toplevels(scm_val env) {
     DEF_PROC("display", fn_display) ;
     DEF_PROC("newline", fn_newline) ;
 
-    DEF_SYNTAX_CHAR("quote", syn_quote, '\'') ;
-    DEF_SYNTAX_CHAR("pseudoquote", syn_quote, '`') ;
-    DEF_SYNTAX("define", syn_define) ;
-    DEF_SYNTAX("lambda", syn_lambda) ;
+    DEF_SYNTAX_CHAR("quote", 0, syn_quote, '\'') ;
+    DEF_SYNTAX_CHAR("pseudoquote", 0, syn_quote, '`') ;
+    DEF_SYNTAX("lambda", 0, syn_lambda) ;
+    DEF_SYNTAX("define", 1, syn_define) ;
 }
 
 void        builtin_tests(void) {
@@ -122,6 +134,8 @@ void        builtin_tests(void) {
     SCM_DEBUG(fn_foldl_arith(v, e, MKTAG('/', CHAR)), "(/ 6 3)") ;
     v = cons(MKTAG(9, FIXNUM), v) ;
     SCM_DEBUG(fn_foldl_arith(v, e, MKTAG('*', CHAR)), "(* 9 6 3)") ;
+    SCM_DEBUG(fn_reverse(cons(v, NIL), e, NIL),  "(reverse '(9 6 3))") ;
+    SCM_DEBUG(v, "orig") ;
     v = fn_reverse_bang(cons(v, NIL), e, NIL) ;
     SCM_DEBUG(v, "(reverse! '(9 6 3))") ;
     v = fn_reverse_bang(cons(CDR(v), NIL), e, NIL) ;

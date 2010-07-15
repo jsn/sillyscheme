@@ -1,83 +1,107 @@
 #include "scheme.h"
 
-struct evaluator    *scm_create_evaluator(scm_val code) {
-    struct evaluator *ev = malloc(sizeof(*ev)) ;
-    ASSERT(ev) ;
-    ev->s = NIL ;
-    ev->c = code ;
-    ev->d = FALSE ;
-    ev->e = env_create(NIL) ;
-    define_toplevels(ev->e) ;
-    return ev ;
+struct evaluator    *scm_create_evaluator(void) {
+    struct evaluator *scm = malloc(sizeof(*scm)) ;
+    ASSERT(scm) ;
+    scm->s = NIL ;
+    scm->e = env_create(NIL) ;
+    scm->c = NIL ;
+    scm->d = NIL ;
+    define_toplevels(scm->e) ;
+    return scm ;
 }
 
-void                scm_destroy_evaluator(struct evaluator *scm) { free(scm) ; }
+void                scm_push(struct evaluator *scm,
+        scm_val e, scm_val c, scm_val s) {
+    scm->d = cons(cons(scm->s, cons(scm->e, scm->c)), scm->d) ;
+    scm->c = c ;
+    scm->e = e ;
+    scm->s = s ;
+}
 
-scm_val             scm_eval(struct evaluator *scm) {
-    for (;;) {
-        switch (type_of(scm->c)) {
-            case FIXNUM: case CHAR: case BOOL: case FLOAT: case STRING:
-                scm->d = scm->c ;
-                break ;
-            case SYMBOL:
-                scm->d = env_get(scm->e, scm->c) ;
-                break ;
-            case CONS:
-                /* push (rest-of-callseq . complete-list */
-                scm->s = cons(cons(CDR(scm->c), NIL), scm->s) ;
-                /* queue up first-of-callseq */
-                scm->c = CAR(scm->c) ;
-                continue ;
+#define PREV_S(scm) CAAR(scm->d)
+#define PREV_E(scm) CADAR(scm->d)
+#define PREV_C(scm) CDDAR(scm->d)
+#define PREV_D(scm) CDR(scm->d)
 
-            default:
-                scm->d = cons(intern("error-not-implemented"), scm->c) ;
-                return FALSE ;
+#define S_APPLY     MKTAG(13, SPECIAL)
+#define S_EVAL      MKTAG(14, SPECIAL)
+
+#define PUSH(x)     scm->s = cons(x, scm->s)
+
+void                scm_pop(struct evaluator *scm) {
+    scm->s = cons(CAR(scm->s), PREV_S(scm)) ;
+    scm->e = PREV_E(scm) ;
+    scm->c = PREV_C(scm) ;
+    scm->d = PREV_D(scm) ;
+}
+
+void        scm_invoke(struct evaluator *scm, scm_val c) {
+    scm_val code = CAR(c), args = CDR(c) ;
+    if (type_of(code) == SYMBOL) {
+        code = env_get(scm->e, code) ;
+        if (SYNTAX_P(code)) {
+            scm_val apply = cons(S_APPLY, NIL) ;
+            if (code.c->flags & FL_EVAL) apply = cons(S_EVAL, apply) ;
+            scm_push(scm, scm->e, apply, cons(code, args)) ;
+            return ;
         }
-
-
-        for (;;) { /* unwind */
-            if (NULL_P(scm->s)) return TRUE ;
-
-            /* there was a cons */
-
-            if (NULL_P(CDAR(scm->s)) && SYNTAX_P(scm->d)) {
-                /* syntax detected */
-                scm_val code = scm->d, args = CAAR(scm->s) ;
-                scm->s = CDR(scm->s) ;
-
-                if (code.c->flags & FL_BUILTIN) {
-                    scm_val (*f)() = CAR(code).p ;
-                    scm->d = f(args, scm->e, CDR(code)) ;
-                } else {
-                    SCM_DEBUG(cons(code, args), "syntax") ;
-                    die("syntax non-builtin NI\n") ;
-                }
-                continue ;
-            }
-
-            CDAR(scm->s) = cons(scm->d, CDAR(scm->s)) ;
-
-            if (NULL_P(CAAR(scm->s))) {
-                /* callseq evaluated */
-                scm_val callseq = reverse_bang(CDAR(scm->s)) ;
-                scm_val code = CAR(callseq), args = CDR(callseq) ;
-                scm->s = CDR(scm->s) ;
-
-                ASSERT(type_of(code) == PROCEDURE) ;
-                if (code.c->flags & FL_BUILTIN) {
-                    scm_val (*f)() = CAR(code).p ;
-                    scm->d = f(args, scm->e, CDR(code)) ;
-                } else {
-                    scm_val formals = CAAR(code), body = CDAR(code) ;
-                    scm_val e = env_bind_formals(CDR(code), formals, args) ;
-                    die("apply non-builtin NI\n") ;
-                }
-                continue ;
-            }
-            break ;
-        }
-
-        scm->c = CAAAR(scm->s) ;
-        CAAR(scm->s) = CDAAR(scm->s) ;
     }
+    scm_push(scm, scm->e, reverse_append(c, cons(S_APPLY, NIL)), NIL) ;
+}
+
+scm_val         scm_apply(struct evaluator *scm) {
+    scm_val proc = CAR(scm->s), args = CDR(scm->s) ;
+
+    ASSERT(type_of(proc) == PROCEDURE) ;
+    if (proc.c->flags & FL_BUILTIN) {
+        scm_val (*f)() = CAR(proc).p ;
+        return f(args, scm->e, CDR(proc)) ;
+    } else {
+        scm_push(scm,
+                env_bind_formals(scm->e, CAAR(proc), args), CDAR(proc), NIL) ;
+        return S_EVAL ;
+    }
+}
+
+scm_val             scm_eval(struct evaluator *scm, scm_val code) {
+    scm->s = NIL ;
+    scm->c = cons(code, scm->c) ;
+
+    while (PAIR_P(scm->c) || PAIR_P(scm->d)) {
+        scm_val c ;
+
+        if (NULL_P(scm->c)) {
+            scm_pop(scm) ;
+            continue ;
+        }
+
+        c = CAR(scm->c) ;
+        scm->c = CDR(scm->c) ;
+
+        switch (type_of(c)) {
+            case FIXNUM: case CHAR: case BOOL: case FLOAT: case STRING:
+                break ;
+            case SYMBOL: c = env_get(scm->e, c) ; break ;
+            case CONS:
+                scm_invoke(scm, c) ;
+                continue ;
+
+            case SPECIAL:
+                if (EQ_P(c, S_APPLY)) {
+                    c = scm_apply(scm) ;
+                    if (EQ_P(c, S_EVAL)) continue ;
+                } else if (EQ_P(c, S_EVAL)) {
+                    die("evaled syntax NIY\n") ;
+                } else
+                    die("unknown special %d\n", UNTAG(c)) ;
+                break ;
+            default:
+                c = cons(intern("error"), c) ;
+                break ;
+        }
+        PUSH(c) ;
+    }
+
+    return CAR(scm->s) ;
 }

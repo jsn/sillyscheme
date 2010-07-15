@@ -115,12 +115,13 @@ void        scm_print(scm_val v, FILE *fp) {
     if (LIST_P(v)) return print_list(v, fp, 0) ;
 
     switch(TAG(v)) {
-        case BOOL:   fprintf(fp, "#%c", UNTAG(v) ? 't' : 'f') ; break ;
-        case FIXNUM: fprintf(fp, "%ld", UNTAG(v)) ; break ;
-        case SYMBOL: fprintf(fp, "%s", sym_to_string(v)) ; break ;
+        case BOOL:    fprintf(fp, "#%c", UNTAG(v) ? 't' : 'f') ; break ;
+        case FIXNUM:  fprintf(fp, "%ld", UNTAG(v)) ;             break ;
+        case SYMBOL:  fprintf(fp, "%s", sym_to_string(v)) ;      break ;
+        case SPECIAL: fprintf(fp, "#<special %d>", UNTAG(v)) ;   break ;
         case CHAR: {
             int c = UNTAG(v) ;
-            if (c < 0) fprintf(fp, "#\\eof") ;
+            if (c < 0) fprintf(fp, "#!eof") ;
             else fprintf(fp, "#\\%c", c) ;
             break ;
         }

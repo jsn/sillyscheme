@@ -1,9 +1,39 @@
+===========================
 This is how I waste my time.
 ============================
 
+STATUS
 ======
+
+What works:
+    Read-Print-Eval Loop works.
+    Some builtin arithmetics (fixnum and double), list functions.
+    Lambda works, non-builtin function calls work.
+
+What doesn't:
+    No memory management yet.
+    Syntax/special forms are almost non-existent.
+    No proper tail-calls.
+    No continuations.
+    Error handling is just not there.
+
 DESIGN
 ======
+
+INTERPRETER
+-----------
+
+As of now, it's a more or less vanilla SECD machine, modified for
+varargs and special forms.
+
+INTERNAL REPRESENTATION
+-----------------------
+Tagged values. scm_val is C 'long'. Lower 3 bits are tags for primitive
+types, higher bits are used for pointers in non-primitive types. We rely
+on allocation policy granting 8-byte alignment. When memory management is
+implemented, this policy will be enforced by allocator.
+
+Primitive types are: CHAR, BOOL, FIXNUM, SYMBOL.
 
 LAMBDA [the ultimate failure] (tm)
 ----------------------------------
@@ -14,12 +44,8 @@ DEFINITION for non-BUILTIN is a cons(formals, body)
 DEFINITION for BUILTIN is a cons(CFUNC, hint)
 CFUNC is an scm_val (*cfunc)(scm_val params, scm_val env, scm_val hint)
 
-=====
 TODO
 =====
-
-Big things:
------------
 
 * read    [x]
 * parse   [x]
@@ -28,10 +54,10 @@ Big things:
   * env     [x]
   * proc    [-]
     * native    [x]
-    * compiled  [ ]
+    * compiled  [x]
     * syntax    [-]
 * print   [x]
 
 Next up:
 --------
-Complete syntax
+
