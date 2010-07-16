@@ -164,7 +164,7 @@ void        builtin_tests(void) {
     printf("\n;; --- BUILTIN TESTS --- ;;\n") ;
 
     v = cons(MKTAG(3, FIXNUM), NIL) ;
-    SCM_DEBUG(fn_foldl_arith(v, e, MKTAG('+', CHAR)), "(+ 6)") ;
+    SCM_DEBUG(fn_foldl_arith(v, e, MKTAG('+', CHAR)), "(+ 3)") ;
     v = cons(MKTAG(6, FIXNUM), v) ;
     SCM_DEBUG(fn_foldl_arith(v, e, MKTAG('%', CHAR)), "(% 6 3)") ;
     SCM_DEBUG(fn_foldl_arith(v, e, MKTAG('-', CHAR)), "(- 6 3)") ;

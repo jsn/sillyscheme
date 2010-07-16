@@ -11,14 +11,6 @@ struct evaluator    *scm_create_evaluator(void) {
     return scm ;
 }
 
-void                scm_push(struct evaluator *scm,
-        scm_val e, scm_val c, scm_val s) {
-    scm->d = cons(cons(scm->s, cons(scm->e, scm->c)), scm->d) ;
-    scm->c = c ;
-    scm->e = e ;
-    scm->s = s ;
-}
-
 #define PREV_S(scm) CAAR(scm->d)
 #define PREV_E(scm) CADAR(scm->d)
 #define PREV_C(scm) CDDAR(scm->d)
@@ -29,6 +21,17 @@ void                scm_push(struct evaluator *scm,
 #define S_EVAL      MKTAG(14, SPECIAL)
 
 #define PUSH(x)     scm->s = cons(x, scm->s)
+
+void                scm_push(struct evaluator *scm,
+        scm_val e, scm_val c, scm_val s) {
+
+    if (!NULL_P(scm->c))
+        scm->d = cons(cons(scm->s, cons(scm->e, scm->c)), scm->d) ;
+
+    scm->c = c ;
+    scm->e = e ;
+    scm->s = s ;
+}
 
 void                scm_pop(struct evaluator *scm) {
     scm->s = cons(CAR(scm->s), PREV_S(scm)) ;
