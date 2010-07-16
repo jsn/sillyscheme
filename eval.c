@@ -58,8 +58,8 @@ scm_val         scm_apply(struct evaluator *scm) {
         scm_val (*f)() = CAR(proc).p ;
         return f(args, scm->e, CDR(proc)) ;
     } else {
-        scm_push(scm,
-                env_bind_formals(scm->e, CAAR(proc), args), CDAR(proc), NIL) ;
+        scm_push(scm, env_bind_formals(CDR(proc), CAAR(proc), args),
+                CDAR(proc), NIL) ;
         return S_EVAL ;
     }
 }
@@ -104,4 +104,20 @@ scm_val             scm_eval(struct evaluator *scm, scm_val code) {
     }
 
     return CAR(scm->s) ;
+}
+
+void        eval_tests(void) {
+    FILE    *fp ;
+    struct scm_scanner *scan ;
+    struct evaluator *scm ;
+
+    printf("\n;; --- EVAL TESTS --- ;;\n") ;
+
+    ASSERT(fp = fopen("tests/fact.scm", "r")) ;
+    scan = scm_create_scanner(fp) ;
+    scm = scm_create_evaluator() ;
+    SCM_DEBUG(scm_eval(scm, scm_read(scan, NIL)),
+            "factorial of 5 using y-combinator") ;
+    scm_destroy_scanner(scan) ;
+    fflush(stdout) ;
 }

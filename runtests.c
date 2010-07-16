@@ -5,5 +5,6 @@ int main (int ac, char const* av[]) {
     assoc_tests() ;
     env_tests() ;
     builtin_tests() ;
+    eval_tests() ;
     return 0 ;
 }

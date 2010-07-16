@@ -5,10 +5,14 @@ This is how I waste my time.
 STATUS
 ======
 
+Latest achievement:
+    We can run factorial using y-combinator (see tests/fact.scm).
+
 What works:
     Read-Print-Eval Loop works.
     Some builtin arithmetics (fixnum and double), list functions.
     Lambda works, non-builtin function calls work.
+    Lexical bindings.
 
 What doesn't:
     No memory management yet.
@@ -60,4 +64,4 @@ TODO
 
 Next up:
 --------
-
+Special forms / macros need some love badly.

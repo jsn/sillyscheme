@@ -49,6 +49,31 @@ scm_val     reverse_bang(scm_val args) {
     return v ;
 }
 
+DEFINE_FUNC(fn_foldl_cmp) {
+    scm_val v ;
+    int  rv = 1 ;
+    double x ;
+
+    x = FLOAT_OF(CAR(args)) ;
+    args = CDR(args) ;
+
+    FOREACH(v, args) {
+        double y = FLOAT_OF(CAR(v)) ;
+        switch (UNTAG(hint)) {
+            case '=': rv = rv && (x == y) ; break ;
+            case '>': rv = rv && (x > y) ; break ;
+            case 'g': rv = rv && (x >= y) ; break ;
+            case '<': rv = rv && (x < y) ; break ;
+            case 'l': rv = rv && (x <= y) ; break ;
+            case '!': rv = rv && (x != y) ; break ;
+            default:
+                die("unknown op '%c'\n", UNTAG(hint)) ;
+        }
+        x = y ;
+    }
+    return rv ? TRUE : FALSE ;
+}
+
 DEFINE_FUNC(fn_reverse_bang) { return reverse_bang(CAR(args)) ; }
 
 scm_val     reverse_append(scm_val args, scm_val head) {
@@ -71,6 +96,11 @@ DEFINE_FUNC(fn_cddr) { return CDDR(CAR(args)) ; }
 DEFINE_FUNC(fn_cons) { return cons(CAR(args), CADR(args)) ; }
 DEFINE_FUNC(fn_display) { scm_print(CAR(args), stdout) ; return FALSE ; }
 DEFINE_FUNC(fn_newline) { printf("\n") ; return FALSE ; }
+
+DEFINE_FUNC(fn_if) {
+    scm_val cond = CAR(args), then_ = CADR(args), else_ = CADDR(args) ;
+    return EQ_P(cond, FALSE) ? else_ : then_ ;
+}
 
 DEFINE_FUNC(syn_quote) { return CAR(args) ; }
 DEFINE_FUNC(syn_define) {
@@ -103,6 +133,12 @@ void        define_toplevels(scm_val env) {
     DEF_PROC_CHAR("-", fn_foldl_arith, '-') ;
     DEF_PROC_CHAR("*", fn_foldl_arith, '*') ;
     DEF_PROC_CHAR("/", fn_foldl_arith, '/') ;
+    DEF_PROC_CHAR("=", fn_foldl_cmp, '=') ;
+    DEF_PROC_CHAR(">", fn_foldl_cmp, '>') ;
+    DEF_PROC_CHAR(">=", fn_foldl_cmp, 'g') ;
+    DEF_PROC_CHAR("<", fn_foldl_cmp, '<') ;
+    DEF_PROC_CHAR("<=", fn_foldl_cmp, 'l') ;
+    DEF_PROC_CHAR("!=", fn_foldl_cmp, '!') ;
     DEF_PROC("reverse!", fn_reverse_bang) ;
     DEF_PROC("reverse", fn_reverse) ;
     DEF_PROC("car", fn_car) ;
@@ -114,6 +150,7 @@ void        define_toplevels(scm_val env) {
     DEF_PROC("cons", fn_cons) ;
     DEF_PROC("display", fn_display) ;
     DEF_PROC("newline", fn_newline) ;
+    DEF_PROC("_if", fn_if) ;
 
     DEF_SYNTAX_CHAR("quote", 0, syn_quote, '\'') ;
     DEF_SYNTAX_CHAR("pseudoquote", 0, syn_quote, '`') ;

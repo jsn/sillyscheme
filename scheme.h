@@ -84,6 +84,7 @@ scm_val     assq(scm_val alist, scm_val key) ;
 #define     CDAAR(v)    CDR(CAAR(v))
 #define     CADAR(v)    CAR(CDAR(v))
 #define     CDDAR(v)    CDR(CDAR(v))
+#define     CADDR(v)    CAR(CDDR(v))
 
 #define     FOREACH(v, list)    for (v = list; !NULL_P(v); v = CDR(v))
 
@@ -117,5 +118,6 @@ void        env_tests(void) ;
 void        assoc_tests(void) ;
 void        parse_tests(void) ;
 void        builtin_tests(void) ;
+void        eval_tests(void) ;
 
 #endif
