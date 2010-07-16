@@ -5,18 +5,21 @@ Status
 ======
 
 Latest achievements:
-    * Tail-call elimination works.
-    * We can run factorial using y-combinator (see tests/fact.scm).
+    * NBU Software proudly presents: *quasiquote* and **user defined**
+      **macros!**
+    * some definitions (*set!*, *define* and *if*) rewritten in scheme in 
+      prelude.scm, which is loaded automatically during startup.
 
 What works:
     * Read-Print-Eval Loop works.
     * Some builtin arithmetics (fixnum and double), list functions.
     * Lambda works, non-builtin function calls work.
+    * We can run factorial using y-combinator (see tests/fact.scm).
     * Lexical bindings.
+    * Tail-call elimination works.
 
 What doesn't:
     * No memory management yet.
-    * Syntax/special forms are almost non-existent.
     * No continuations.
     * Error handling is just not there.
 
@@ -62,6 +65,12 @@ DEFINITION for BUILTIN
 CFUNC
   is an scm_val (\*cfunc)(scm_val params, scm_val env, scm_val hint)
 
+Special forms:
+--------------
+
+I admittedly don't understand macros well. For now, *quasiquote* is 
+implemented, and hooked up as the mechanism for user-defined macros.
+
 Braindump
 =========
 
@@ -81,11 +90,7 @@ Braindump
    |     01      | Extended tag (next 6 bits) |
    +-------------+----------------------------+
 
-2. Tail calls: instead of storing APPLY in control register, we should 
-   store (cons APPLY stack-position). Then we can get rid of dump register 
-   pushes.
-
-3. Memory management: we can try to force every non-cell blob object (like
+2. Memory management: we can try to force every non-cell blob object (like
    string data) to be always pointed at by exactly one cell. Then we get a 
    pool for cells and another pool for blobs. Objects in cell pool can be 
    garbage-collected trivially (walking C-stack may be necessary, though), 
@@ -101,10 +106,10 @@ TODO
    * [x] symbols
    * [x] env
       * [x] lexical
-   * [-] proc
+   * [x] proc
       * [x] native
       * [x] compiled
-      * [-] syntax
+      * [x] syntax
 * [x] print
 * [x] tail calls
 * [ ] continuations
@@ -112,4 +117,4 @@ TODO
 
 Next up:
 --------
-Special forms / macros need some love badly.
+The almightly call-with-current-continuation?

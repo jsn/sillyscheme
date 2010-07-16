@@ -4,7 +4,7 @@
 #define DEFINE_FUNC(name)   \
     scm_val name(scm_val args, scm_val env, scm_val hint)
 
-#define CONS(sym, cdr)  cons(intern(#sym), cdr)
+#define CALL(sym, cdr)  cons(intern(#sym), cdr)
 
 DEFINE_FUNC(fn_foldl_arith) {
     scm_val v ;
@@ -139,8 +139,8 @@ DEFINE_FUNC(syn_quote) { return CAR(args) ; }
 DEFINE_FUNC(syn_quasiquote) {
     scm_val v = CAR(args), cdr, car ;
 
-#define Q(x)        CONS(quote, cons(x, NIL))
-#define QQ(x)       CONS(quasiquote, cons(x, NIL))
+#define Q(x)        CALL(quote, cons(x, NIL))
+#define QQ(x)       CALL(quasiquote, cons(x, NIL))
 #define QQ_LIST(l)  (NULL_P(l) ? Q(l) : QQ(l))
 
     switch (type_of(v)) {
@@ -161,11 +161,11 @@ DEFINE_FUNC(syn_quasiquote) {
     if (EQ_P(car, intern("unquote"))) return CAR(cdr) ;
     if (EQ_P(car, intern("quasiquote"))) return Q(QQ(CAR(cdr))) ;
     if (type_of(car) == CONS && EQ_P(CAR(car), intern("unquote-splicing")))
-        return CONS(append,
+        return CALL(append,
                 cons(CADR(car),
                     cons(QQ_LIST(cdr),
                         NIL))) ;
-    return CONS(cons,
+    return CALL(cons,
                 cons(QQ(car),
                     cons(QQ_LIST(cdr),
                         NIL))) ;
@@ -174,14 +174,6 @@ DEFINE_FUNC(syn_quasiquote) {
 DEFINE_FUNC(fn_define) {
     env_define(env, CAR(args), CADR(args)) ;
     return CADR(args) ;
-}
-
-DEFINE_FUNC(syn_define) {
-    scm_val sym = CAR(args), val = NIL ;
-    if (!NULL_P(CDR(args))) val = CADR(args) ;
-
-    /* (_define (quote sym) val) */
-    return CONS(_define, cons(CONS(quote, cons(sym, NIL)), cons(val, NIL))) ;
 }
 
 DEFINE_FUNC(fn_set_bang) {
@@ -259,7 +251,6 @@ void        define_toplevels(scm_val env) {
     DEF_SYNTAX("lambda", 0, syn_lambda) ;
     DEF_SYNTAX("syntax-lambda", 0, syn_syntax_lambda) ;
     DEF_SYNTAX("transform-lambda", 0, syn_transform_lambda) ;
-    DEF_SYNTAX("define", FL_EVAL, syn_define) ;
 }
 
 void        builtin_tests(void) {
