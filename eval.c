@@ -15,7 +15,7 @@ struct evaluator    *scm_create_evaluator(void) {
 #define S_APPLY     MKTAG(13, SPECIAL)
 #define S_EVAL      MKTAG(14, SPECIAL)
 
-#define PUSH(x)     CAR(scm->s) = cons(x, CAR(scm->s))
+#define PUSH(x)     scm->s = cons(cons(x, CAR(scm->s)), CDR(scm->s))
 
 void                scm_push(struct evaluator *scm,
         scm_val s, scm_val e, scm_val c) {
@@ -67,12 +67,12 @@ scm_val         scm_apply(struct evaluator *scm) {
     } else {
         scm_val e = env_bind_formals(CDR(proc), CAAR(proc), args) ;
 
-        if (!NULL_P(scm->c))
-            scm_push(scm, NIL, e, CDAR(proc)) ;
-        else {
+        if (NULL_P(scm->c)) {   /* tail call */
             scm->e = e ;
             scm->c = CDAR(proc) ;
-        }
+        } else
+            scm_push(scm, NIL, e, CDAR(proc)) ;
+
         return S_EVAL ;
     }
 }
@@ -104,7 +104,7 @@ scm_val             scm_eval(struct evaluator *scm, scm_val code) {
                     if (EQ_P(c, S_EVAL)) continue ;
                 } else if (EQ_P(c, S_EVAL)) {
                     scm->c = cons(CAAR(scm->s), scm->c) ;
-                    CAR(scm->s) = CDAR(scm->s) ;
+                    scm->s = cons(CDAR(scm->s), CDR(scm->s)) ;
                     continue ;
                 } else
                     die("unknown special %d\n", UNTAG(c)) ;
