@@ -4,6 +4,8 @@
 #define DEFINE_FUNC(name)   \
     scm_val name(scm_val args, scm_val env, scm_val hint)
 
+#define CONS(sym, cdr)  cons(intern(#sym), cdr)
+
 DEFINE_FUNC(fn_foldl_arith) {
     scm_val v ;
     int     got_double = 0 ;
@@ -97,23 +99,42 @@ DEFINE_FUNC(fn_cons) { return cons(CAR(args), CADR(args)) ; }
 DEFINE_FUNC(fn_display) { scm_print(CAR(args), stdout) ; return FALSE ; }
 DEFINE_FUNC(fn_newline) { printf("\n") ; return FALSE ; }
 
+DEFINE_FUNC(syn_quote) { return CAR(args) ; }
+
+DEFINE_FUNC(fn_define) {
+    env_define(env, CAR(args), CADR(args)) ;
+    return CADR(args) ;
+}
+
+DEFINE_FUNC(syn_define) {
+    scm_val sym = CAR(args), val = NIL ;
+    if (!NULL_P(CDR(args))) val = CADR(args) ;
+
+    /* (_define (quote sym) val) */
+    return CONS(_define, cons(CONS(quote, cons(sym, NIL)), cons(val, NIL))) ;
+}
+
+DEFINE_FUNC(fn_set_bang) {
+    env_set(env, CAR(args), CADR(args)) ;
+    return CADR(args) ;
+}
+
+DEFINE_FUNC(syn_set_bang) {
+    scm_val sym = CAR(args), val = CADR(args) ;
+    return CONS(_set!, cons(CONS(quote, cons(sym, NIL)), cons(val, NIL))) ;
+}
+
 DEFINE_FUNC(fn_if) {
     scm_val cond = CAR(args), then_ = CADR(args), else_ = CADDR(args) ;
     return EQ_P(cond, FALSE) ? else_ : then_ ;
 }
 
-DEFINE_FUNC(syn_quote) { return CAR(args) ; }
-DEFINE_FUNC(syn_define) {
-    env_define(env, CAR(args), CADR(args)) ;
-    return CADR(args) ;
-}
-
 DEFINE_FUNC(syn_if) {
     scm_val cond = CAR(args), then_ = CADR(args), else_ = CADDR(args) ;
     /* ((_if cond (lambda () then_) (lambda () else_))) */
-    then_ = cons(intern("lambda"), cons(NIL, cons(then_, NIL))) ;
-    else_ = cons(intern("lambda"), cons(NIL, cons(else_, NIL))) ;
-    cond  = cons(cons(intern("_if"), cons(cond, cons(then_, cons(else_, NIL)))), NIL) ;
+    then_ = CONS(lambda, cons(NIL, cons(then_, NIL))) ;
+    else_ = CONS(lambda, cons(NIL, cons(else_, NIL))) ;
+    cond  = cons(CONS(_if, cons(cond, cons(then_, cons(else_, NIL)))), NIL) ;
     return cond ;
 }
 
@@ -160,12 +181,15 @@ void        define_toplevels(scm_val env) {
     DEF_PROC("display", fn_display) ;
     DEF_PROC("newline", fn_newline) ;
     DEF_PROC("_if", fn_if) ;
+    DEF_PROC("_define", fn_define) ;
+    DEF_PROC("_set!", fn_set_bang) ;
 
     DEF_SYNTAX_CHAR("quote", 0, syn_quote, '\'') ;
     DEF_SYNTAX_CHAR("pseudoquote", 0, syn_quote, '`') ;
     DEF_SYNTAX("lambda", 0, syn_lambda) ;
     DEF_SYNTAX("define", FL_EVAL, syn_define) ;
     DEF_SYNTAX("if", FL_EVAL, syn_if) ;
+    DEF_SYNTAX("set!", FL_EVAL, syn_set_bang) ;
 }
 
 void        builtin_tests(void) {
