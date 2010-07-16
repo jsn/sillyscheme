@@ -4,7 +4,8 @@ SILLY SCHEME: COMPLETELY IMPRACTICAL EXERCISE IN REINVENTING  THE WHEEL
 Status
 ======
 
-Latest achievement:
+Latest achievements:
+    * Tail-call elimination works.
     * We can run factorial using y-combinator (see tests/fact.scm).
 
 What works:
@@ -16,7 +17,6 @@ What works:
 What doesn't:
     * No memory management yet.
     * Syntax/special forms are almost non-existent.
-    * No proper tail-calls.
     * No continuations.
     * Error handling is just not there.
 
@@ -27,7 +27,17 @@ Interpreter
 -----------
 
 As of now, it's a more or less vanilla SECD machine, modified for
-varargs and special forms.
+varargs, special forms and tail calls elimination. Modifications are as 
+follows:
+
+  * Stack is not a simple list, but a list of lists. apply() removes the 
+    top list of the stack (so we can support varargs).
+  * Some PROCEDUREs are marked with FL_SYNTAX. When SECD machine detects
+    a syntax call (takes some look-ahead), arguments are not evaluated.
+    Also, if FL_EVAL flag is set for syntax, the return value of the 
+    procedure is queued up for re-evaluation.
+  * When a tail call is detected, new dump frames allocation is skipped in 
+    apply().
 
 Internal Representation
 -----------------------
@@ -36,7 +46,7 @@ types, higher bits are used for pointers in non-primitive types. We rely
 on allocation policy granting 8-byte alignment. When memory management is
 implemented, this policy will be enforced by allocator.
 
-Primitive types are: CHAR, BOOL, FIXNUM, SYMBOL.
+Primitive types are: CHAR, BOOL, FIXNUM, SYMBOL, SPECIAL.
 
 LAMBDA [the ultimate failure] (tm)
 ----------------------------------
@@ -55,31 +65,32 @@ CFUNC
 Braindump
 =========
 
-1. Tagging. Apparently, in a hindsight, 8-byte alignment requirement sucks.
-Especially since sizeof(struct cell) is 12 on 32-bit and 20 on 64 bit. So,
-maybe we should change the tagging scheme. Something like this:
+1. Tagging. Apparently, in a hindsight, 8-byte alignment requirement sucks. 
+   Especially since sizeof(struct cell) is 12 on 32-bit and 20 on 64 bit.  
+   So, maybe we should change the tagging scheme. Something like this:
 
-+-------------+----------------------------+
-|Lower 2 bits | Type                       |
-+-------------+----------------------------+
-|     00      | Cell ptr                   |
-+-------------+----------------------------+
-|     10      | Fixnum (even)              |
-+-------------+----------------------------+
-|     11      | Fixnum (odd)               |
-+-------------+----------------------------+
-|     01      | Extended tag (next 6 bits) |
-+-------------+----------------------------+
+   +=============+============================+
+   | Lower 2bits | Type                       |
+   +==========================================+
+   |     00      | Cell ptr                   |
+   +-------------+----------------------------+
+   |     10      | Fixnum (even)              |
+   +-------------+----------------------------+
+   |     11      | Fixnum (odd)               |
+   +-------------+----------------------------+
+   |     01      | Extended tag (next 6 bits) |
+   +-------------+----------------------------+
 
-2. Tail calls: instead of storing APPLY in control register, we should store
-(cons APPLY stack-position). Then we can get rid of dump register pushes.
+2. Tail calls: instead of storing APPLY in control register, we should 
+   store (cons APPLY stack-position). Then we can get rid of dump register 
+   pushes.
 
 3. Memory management: we can try to force every non-cell blob object (like
-string data) to be always pointed at exactly one cell. Then we get a pool for
-cells and another pool for blobs. Objects in cell pool can be garbage-collected
-trivially (walking C-stack may be necessary, though), blobs are freed when the
-refrencing cell is GC-ed. I don't think I care enough to do real compaction --
-freelist should be enough.
+   string data) to be always pointed at by exactly one cell. Then we get a 
+   pool for cells and another pool for blobs. Objects in cell pool can be 
+   garbage-collected trivially (walking C-stack may be necessary, though), 
+   blobs are freed when the refrencing cell is GC-ed. I don't think I care 
+   enough to do real compaction -- freelist should be enough.
 
 TODO
 =====
@@ -95,10 +106,10 @@ TODO
       * [x] compiled
       * [-] syntax
 * [x] print
-* [ ] tail calls
+* [x] tail calls
 * [ ] continuations
 * [ ] GC
 
 Next up:
 --------
-Special forms / macros need some love badly. Got a plan for tail-calls.
+Special forms / macros need some love badly.
