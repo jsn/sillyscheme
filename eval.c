@@ -23,7 +23,7 @@ struct evaluator    *scm_create_evaluator(void) {
 #define PUSH(x)     scm->s = cons(x, scm->s)
 
 void                scm_push(struct evaluator *scm,
-        scm_val e, scm_val c, scm_val s) {
+        scm_val s, scm_val e, scm_val c) {
 
     if (!NULL_P(scm->c))
         scm->d = cons(cons(scm->s, cons(scm->e, scm->c)), scm->d) ;
@@ -42,16 +42,22 @@ void                scm_pop(struct evaluator *scm) {
 
 void        scm_invoke(struct evaluator *scm, scm_val c) {
     scm_val code = CAR(c), args = CDR(c) ;
+
+    scm_val apply = cons(S_APPLY, NIL) ;
+    scm_val stack = NIL ;
+
     if (type_of(code) == SYMBOL) {
         code = env_get(scm->e, code) ;
         if (SYNTAX_P(code)) {
-            scm_val apply = cons(S_APPLY, NIL) ;
             if (code.c->flags & FL_EVAL) CDR(apply) = cons(S_EVAL, NIL) ;
-            scm_push(scm, scm->e, apply, cons(code, args)) ;
-            return ;
+            stack = cons(code, args) ;
+            c = NIL ;
         }
     }
-    scm_push(scm, scm->e, reverse_append(c, cons(S_APPLY, NIL)), NIL) ;
+
+    if (!NULL_P(c)) apply = reverse_append(c, apply) ;
+
+    scm_push(scm, stack, scm->e, apply) ;
 }
 
 scm_val         scm_apply(struct evaluator *scm) {
@@ -63,8 +69,8 @@ scm_val         scm_apply(struct evaluator *scm) {
         scm_val (*f)() = CAR(proc).p ;
         return f(args, scm->e, CDR(proc)) ;
     } else {
-        scm_push(scm, env_bind_formals(CDR(proc), CAAR(proc), args),
-                CDAR(proc), NIL) ;
+        scm_push(scm, NIL, env_bind_formals(CDR(proc), CAAR(proc), args),
+                CDAR(proc)) ;
         return S_EVAL ;
     }
 }
