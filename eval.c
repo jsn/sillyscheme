@@ -60,7 +60,10 @@ scm_val         scm_apply(struct evaluator *scm) {
     scm_val proc = CAAR(scm->s), args = CDAR(scm->s) ;
     scm->s = CDR(scm->s) ;
 
-    ASSERT(type_of(proc) == PROCEDURE) ;
+    if (type_of(proc) != PROCEDURE) {
+        SCM_DEBUG(proc, "not a procedure") ;
+        die("") ;
+    }
     if (proc.c->flags & FL_BUILTIN) {
         scm_val (*f)() = CAR(proc).p ;
         return f(args, scm->e, CDR(proc)) ;

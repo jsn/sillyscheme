@@ -51,6 +51,41 @@ scm_val     reverse_bang(scm_val args) {
     return v ;
 }
 
+scm_val     append_bang(scm_val x, scm_val y) {
+    scm_val v ;
+    FOREACH(v, x)
+        if (NULL_P(CDR(v))) {
+            CDR(v) = y ;
+            return x ;
+        };
+    return y ;
+}
+
+DEFINE_FUNC(fn_append_bang) {
+    scm_val x = NIL, y ;
+    FOREACH(y, args) x = append_bang(x, CAR(y)) ;
+    return x ;
+}
+
+DEFINE_FUNC(fn_append) {
+    scm_val head = NIL, tail = NIL, x, v ;
+
+    FOREACH(x, args) {
+        if (NULL_P(CDR(x)))
+            if (NULL_P(head))
+                head = tail = CAR(x) ;
+            else
+                CDR(tail) = CAR(x) ;
+        else
+            FOREACH(v, CAR(x)) {
+                if (NULL_P(head))
+                    head = tail = cons(CAR(v), NIL) ;
+                else
+                    tail = CDR(tail) = cons(CAR(v), NIL) ;
+            }
+    }
+    return head ;
+}
 DEFINE_FUNC(fn_foldl_cmp) {
     scm_val v ;
     int  rv = 1 ;
@@ -100,6 +135,41 @@ DEFINE_FUNC(fn_display) { scm_print(CAR(args), stdout) ; return FALSE ; }
 DEFINE_FUNC(fn_newline) { printf("\n") ; return FALSE ; }
 
 DEFINE_FUNC(syn_quote) { return CAR(args) ; }
+
+DEFINE_FUNC(syn_quasiquote) {
+    scm_val v = CAR(args), cdr, car ;
+
+#define Q(x)        CONS(quote, cons(x, NIL))
+#define QQ(x)       CONS(quasiquote, cons(x, NIL))
+#define QQ_LIST(l)  (NULL_P(l) ? Q(l) : QQ(l))
+
+    switch (type_of(v)) {
+        case FIXNUM: case CHAR: case BOOL: case FLOAT: case STRING:
+            return v ;
+        case SYMBOL: case NONE:
+            return Q(v) ;
+        case CONS:
+            break ;
+        default:
+            die("oops\n") ;
+    }
+
+    /* CONS */
+    car = CAR(v) ;
+    cdr = CDR(v) ;
+
+    if (EQ_P(car, intern("unquote"))) return CAR(cdr) ;
+    if (EQ_P(car, intern("quasiquote"))) return Q(QQ(CAR(cdr))) ;
+    if (type_of(car) == CONS && EQ_P(CAR(car), intern("unquote-splicing")))
+        return CONS(append,
+                cons(CADR(car),
+                    cons(QQ_LIST(cdr),
+                        NIL))) ;
+    return CONS(cons,
+                cons(QQ(car),
+                    cons(QQ_LIST(cdr),
+                        NIL))) ;
+}
 
 DEFINE_FUNC(fn_define) {
     env_define(env, CAR(args), CADR(args)) ;
@@ -151,10 +221,6 @@ DEFINE_FUNC(syn_lambda) {
 #define DEF_PROC(name, func) \
     env_define(env, intern(name), make_builtin(0, func, intern(name)))
 
-#define DEF_SYNTAX_CHAR(name, flags, func, hint)  \
-    env_define(env, intern(name), \
-            make_builtin(FL_SYNTAX | flags, func, MKTAG(hint, CHAR)))
-
 #define DEF_SYNTAX(name, flags, func) \
     env_define(env, intern(name), make_builtin(FL_SYNTAX | flags, func, intern(name)))
 
@@ -183,9 +249,11 @@ void        define_toplevels(scm_val env) {
     DEF_PROC("_if", fn_if) ;
     DEF_PROC("_define", fn_define) ;
     DEF_PROC("_set!", fn_set_bang) ;
+    DEF_PROC("append!", fn_append_bang) ;
+    DEF_PROC("append", fn_append) ;
 
-    DEF_SYNTAX_CHAR("quote", 0, syn_quote, '\'') ;
-    DEF_SYNTAX_CHAR("pseudoquote", 0, syn_quote, '`') ;
+    DEF_SYNTAX("quote", 0, syn_quote) ;
+    DEF_SYNTAX("quasiquote", FL_EVAL, syn_quasiquote) ;
     DEF_SYNTAX("lambda", 0, syn_lambda) ;
     DEF_SYNTAX("define", FL_EVAL, syn_define) ;
     DEF_SYNTAX("if", FL_EVAL, syn_if) ;
