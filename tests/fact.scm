@@ -5,7 +5,7 @@
        (X (lambda (arg) ((procedure procedure) arg))))))
   (lambda (func-arg)
     (lambda (n)
-      ((_if (= 0 n)
-           (lambda () 1)
-           (lambda () (* n (func-arg (- n 1)))))))))
+      (if (= 0 n)
+        1
+        (* n (func-arg (- n 1)))))))
  5)

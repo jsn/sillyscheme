@@ -108,6 +108,15 @@ DEFINE_FUNC(syn_define) {
     return CADR(args) ;
 }
 
+DEFINE_FUNC(syn_if) {
+    scm_val cond = CAR(args), then_ = CADR(args), else_ = CADDR(args) ;
+    /* ((_if cond (lambda () then_) (lambda () else_))) */
+    then_ = cons(intern("lambda"), cons(NIL, cons(then_, NIL))) ;
+    else_ = cons(intern("lambda"), cons(NIL, cons(else_, NIL))) ;
+    cond  = cons(cons(intern("_if"), cons(cond, cons(then_, cons(else_, NIL)))), NIL) ;
+    return cond ;
+}
+
 DEFINE_FUNC(syn_lambda) {
     scm_val proc = mkcell(PROCEDURE) ;
     CAR(proc) = args ;
@@ -155,7 +164,8 @@ void        define_toplevels(scm_val env) {
     DEF_SYNTAX_CHAR("quote", 0, syn_quote, '\'') ;
     DEF_SYNTAX_CHAR("pseudoquote", 0, syn_quote, '`') ;
     DEF_SYNTAX("lambda", 0, syn_lambda) ;
-    DEF_SYNTAX("define", 1, syn_define) ;
+    DEF_SYNTAX("define", FL_EVAL, syn_define) ;
+    DEF_SYNTAX("if", FL_EVAL, syn_if) ;
 }
 
 void        builtin_tests(void) {

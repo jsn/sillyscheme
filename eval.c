@@ -46,7 +46,7 @@ void        scm_invoke(struct evaluator *scm, scm_val c) {
         code = env_get(scm->e, code) ;
         if (SYNTAX_P(code)) {
             scm_val apply = cons(S_APPLY, NIL) ;
-            if (code.c->flags & FL_EVAL) apply = cons(S_EVAL, apply) ;
+            if (code.c->flags & FL_EVAL) CDR(apply) = cons(S_EVAL, NIL) ;
             scm_push(scm, scm->e, apply, cons(code, args)) ;
             return ;
         }
@@ -57,6 +57,7 @@ void        scm_invoke(struct evaluator *scm, scm_val c) {
 scm_val         scm_apply(struct evaluator *scm) {
     scm_val proc = CAR(scm->s), args = CDR(scm->s) ;
 
+    scm->s = NIL ;
     ASSERT(type_of(proc) == PROCEDURE) ;
     if (proc.c->flags & FL_BUILTIN) {
         scm_val (*f)() = CAR(proc).p ;
@@ -94,7 +95,9 @@ scm_val             scm_eval(struct evaluator *scm, scm_val code) {
                     c = scm_apply(scm) ;
                     if (EQ_P(c, S_EVAL)) continue ;
                 } else if (EQ_P(c, S_EVAL)) {
-                    die("evaled syntax NIY\n") ;
+                    scm->c = cons(CAR(scm->s), scm->c) ;
+                    scm->s = CDR(scm->s) ;
+                    continue ;
                 } else
                     die("unknown special %d\n", UNTAG(c)) ;
                 break ;
