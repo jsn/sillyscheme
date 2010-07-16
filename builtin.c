@@ -119,14 +119,14 @@ DEFINE_FUNC(syn_lambda) {
     env_define(env, intern(name), make_builtin(0, func, MKTAG(hint, CHAR)))
 
 #define DEF_PROC(name, func) \
-    env_define(env, intern(name), make_builtin(0, func, NIL))
+    env_define(env, intern(name), make_builtin(0, func, intern(name)))
 
 #define DEF_SYNTAX_CHAR(name, flags, func, hint)  \
     env_define(env, intern(name), \
             make_builtin(FL_SYNTAX | flags, func, MKTAG(hint, CHAR)))
 
 #define DEF_SYNTAX(name, flags, func) \
-    env_define(env, intern(name), make_builtin(FL_SYNTAX | flags, func, NIL))
+    env_define(env, intern(name), make_builtin(FL_SYNTAX | flags, func, intern(name)))
 
 void        define_toplevels(scm_val env) {
     DEF_PROC_CHAR("+", fn_foldl_arith, '+') ;

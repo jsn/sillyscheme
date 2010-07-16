@@ -24,6 +24,7 @@ void                scm_push(struct evaluator *scm,
 #define PREV_C(scm) CDDAR(scm->d)
 #define PREV_D(scm) CDR(scm->d)
 
+/* unique special values garanteed not to be coming from elsewhere */
 #define S_APPLY     MKTAG(13, SPECIAL)
 #define S_EVAL      MKTAG(14, SPECIAL)
 
@@ -83,9 +84,7 @@ scm_val             scm_eval(struct evaluator *scm, scm_val code) {
             case FIXNUM: case CHAR: case BOOL: case FLOAT: case STRING:
                 break ;
             case SYMBOL: c = env_get(scm->e, c) ; break ;
-            case CONS:
-                scm_invoke(scm, c) ;
-                continue ;
+            case CONS:   scm_invoke(scm, c) ;     continue ;
 
             case SPECIAL:
                 if (EQ_P(c, S_APPLY)) {
