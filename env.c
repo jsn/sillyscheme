@@ -32,8 +32,8 @@ scm_val     env_get(scm_val env, scm_val key) {
     return CDR(pair) ;
 }
 
-scm_val     env_bind_formals(scm_val env, scm_val formals, scm_val values) {
-    scm_val alist = NIL ;
+scm_val     env_bind_formals(scm_val parent, scm_val formals, scm_val values) {
+    scm_val env, alist = NIL ;
     size_t  cnt = 0 ;
 
     while (!NULL_P(formals)) {
@@ -53,10 +53,8 @@ scm_val     env_bind_formals(scm_val env, scm_val formals, scm_val values) {
     }
     ASSERT(NULL_P(values)) ;
 
-    if (!NULL_P(alist)) {
-        env = env_create(env) ;
-        CAR(env) = alist ;
-    }
+    env = env_create(parent) ;
+    CAR(env) = alist ;
     return env ;
 }
 

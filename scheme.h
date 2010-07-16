@@ -95,7 +95,7 @@ scm_val     env_get_pair(scm_val env, scm_val key, int force, int up) ;
 scm_val     env_get(scm_val env, scm_val key) ;
 #define env_define(env, key, val) CDR(env_get_pair(env, key, 1, 0)) = val
 #define env_set(env, key, val) CDR(env_get_pair(env, key, 1, 1)) = val
-scm_val     env_bind_formals(scm_val env, scm_val formals, scm_val values) ;
+scm_val     env_bind_formals(scm_val parent, scm_val formals, scm_val values) ;
 
 struct evaluator    *scm_create_evaluator(void) ;
 void                define_toplevels(scm_val env) ;

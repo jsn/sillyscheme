@@ -67,7 +67,7 @@ scm_val         scm_apply(struct evaluator *scm) {
     } else {
         scm_val e = env_bind_formals(CDR(proc), CAAR(proc), args) ;
 
-        if (NULL_P(scm->c)) {   /* tail call */
+        if (NULL_P(scm->c) && !NULL_P(CDR(scm->e))) {   /* tail call */
             scm->e = e ;
             scm->c = CDAR(proc) ;
         } else
