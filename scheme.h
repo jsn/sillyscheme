@@ -100,6 +100,7 @@ scm_val     env_bind_formals(scm_val parent, scm_val formals, scm_val values) ;
 struct evaluator    *scm_create_evaluator(void) ;
 void                define_toplevels(scm_val env) ;
 scm_val             scm_eval(struct evaluator *scm, scm_val code) ;
+scm_val             scm_load_file(struct evaluator *scm, const char *fname) ;
 scm_val             reverse_bang(scm_val args) ;
 scm_val             reverse_append(scm_val args, scm_val head) ;
 

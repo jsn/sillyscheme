@@ -8,7 +8,25 @@ struct evaluator    *scm_create_evaluator(void) {
     scm->c = NIL ;
     scm->d = NIL ;
     define_toplevels(scm->e) ;
+    scm_load_file(scm, "prelude.scm") ;
     return scm ;
+}
+
+scm_val             scm_load_file(struct evaluator *scm, const char *fname) {
+    struct scm_scanner *scan ;
+    FILE *fp ;
+    scm_val v = FALSE ;
+
+    ENSURE(fp = fopen(fname, "r"), "scm_load_file: fopen()\n") ;
+    scan = scm_create_scanner(fp) ;
+
+    for (;;) {
+        v = scm_read(scan, NIL) ;
+        if (EQ_P(v, SCM_EOF)) break ;
+        v = scm_eval(scm, v) ;
+    }
+    scm_destroy_scanner(scan) ;
+    return v ;
 }
 
 /* unique special values garanteed not to be coming from elsewhere */

@@ -189,27 +189,29 @@ DEFINE_FUNC(fn_set_bang) {
     return CADR(args) ;
 }
 
-DEFINE_FUNC(syn_set_bang) {
-    scm_val sym = CAR(args), val = CADR(args) ;
-    return CONS(_set!, cons(CONS(quote, cons(sym, NIL)), cons(val, NIL))) ;
-}
-
 DEFINE_FUNC(fn_if) {
     scm_val cond = CAR(args), then_ = CADR(args), else_ = CADDR(args) ;
     return EQ_P(cond, FALSE) ? else_ : then_ ;
 }
 
-DEFINE_FUNC(syn_if) {
-    scm_val cond = CAR(args), then_ = CADR(args), else_ = CADDR(args) ;
-    /* ((_if cond (lambda () then_) (lambda () else_))) */
-    then_ = CONS(lambda, cons(NIL, cons(then_, NIL))) ;
-    else_ = CONS(lambda, cons(NIL, cons(else_, NIL))) ;
-    cond  = cons(CONS(_if, cons(cond, cons(then_, cons(else_, NIL)))), NIL) ;
-    return cond ;
-}
-
 DEFINE_FUNC(syn_lambda) {
     scm_val proc = mkcell(PROCEDURE) ;
+    CAR(proc) = args ;
+    CDR(proc) = env ;
+    return proc ;
+}
+
+DEFINE_FUNC(syn_syntax_lambda) {
+    scm_val proc = mkcell(PROCEDURE) ;
+    proc.c->flags |= FL_SYNTAX | FL_EVAL ;
+    CAR(proc) = args ;
+    CDR(proc) = env ;
+    return proc ;
+}
+
+DEFINE_FUNC(syn_transform_lambda) {
+    scm_val proc = mkcell(PROCEDURE) ;
+    proc.c->flags |= FL_SYNTAX ;
     CAR(proc) = args ;
     CDR(proc) = env ;
     return proc ;
@@ -255,9 +257,9 @@ void        define_toplevels(scm_val env) {
     DEF_SYNTAX("quote", 0, syn_quote) ;
     DEF_SYNTAX("quasiquote", FL_EVAL, syn_quasiquote) ;
     DEF_SYNTAX("lambda", 0, syn_lambda) ;
+    DEF_SYNTAX("syntax-lambda", 0, syn_syntax_lambda) ;
+    DEF_SYNTAX("transform-lambda", 0, syn_transform_lambda) ;
     DEF_SYNTAX("define", FL_EVAL, syn_define) ;
-    DEF_SYNTAX("if", FL_EVAL, syn_if) ;
-    DEF_SYNTAX("set!", FL_EVAL, syn_set_bang) ;
 }
 
 void        builtin_tests(void) {
