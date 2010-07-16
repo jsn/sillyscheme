@@ -69,9 +69,9 @@ Braindump
    Especially since sizeof(struct cell) is 12 on 32-bit and 20 on 64 bit.  
    So, maybe we should change the tagging scheme. Something like this:
 
-   +=============+============================+
+   +-------------+----------------------------+
    | Lower 2bits | Type                       |
-   +==========================================+
+   +=============+============================+
    |     00      | Cell ptr                   |
    +-------------+----------------------------+
    |     10      | Fixnum (even)              |
