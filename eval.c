@@ -3,7 +3,7 @@
 struct evaluator    *scm_create_evaluator(void) {
     struct evaluator *scm = malloc(sizeof(*scm)) ;
     ASSERT(scm) ;
-    scm->s = NIL ;
+    scm->s = cons(NIL, NIL) ;
     scm->e = env_create(NIL) ;
     scm->c = NIL ;
     scm->d = NIL ;
@@ -94,9 +94,13 @@ scm_val fn_apply(scm_val args, struct evaluator *scm, scm_val hint) {
     }
 }
 
+scm_val fn_eval(scm_val args, struct evaluator *scm, scm_val hint) {
+    PUSH(CAR(args)) ;
+    scm->c = cons(S_EVAL, scm->c) ;
+    return S_EVAL ;
+}
 
 scm_val             scm_eval(struct evaluator *scm, scm_val code) {
-    scm->s = cons(NIL, NIL) ;
     scm->c = cons(code, scm->c) ;
 
     while (PAIR_P(scm->c) || PAIR_P(scm->d)) {
@@ -138,7 +142,9 @@ scm_val             scm_eval(struct evaluator *scm, scm_val code) {
         PUSH(c) ;
     }
 
-    return CAAR(scm->s) ;
+    code = CAAR(scm->s) ;
+    scm->s = cons(CDAR(scm->s), CDR(scm->s)) ;
+    return code ;
 }
 
 static scm_val run_file(const char *fname) {

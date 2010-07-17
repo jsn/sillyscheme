@@ -15,3 +15,6 @@
     (if (null? list) '()
       (cons (f (car list)) (map f (cdr list))))))
 
+(define let
+  (syntax-lambda (defs . body)
+                 `((lambda (,@(map car defs)) ,@body) ,@(map cadr defs))))

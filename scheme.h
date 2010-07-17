@@ -105,6 +105,7 @@ scm_val             scm_eval(struct evaluator *scm, scm_val code) ;
 scm_val             scm_load_file(struct evaluator *scm, const char *fname) ;
 void    scm_push(struct evaluator *scm, scm_val s, scm_val e, scm_val c) ;
 scm_val             fn_apply(scm_val args, struct evaluator *scm, scm_val hint);
+scm_val             fn_eval(scm_val args, struct evaluator *scm, scm_val hint) ;
 scm_val             reverse_bang(scm_val args) ;
 scm_val             reverse_append(scm_val args, scm_val head) ;
 
