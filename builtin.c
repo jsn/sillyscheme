@@ -36,7 +36,13 @@ DEFINE_FUNC(fn_foldl_arith) {
         }
         got_double |= (type_of(CAR(v)) == FLOAT) ;
     }
-    return got_double ? make_float(rv) : MKTAG((long)rv, FIXNUM) ;
+
+    if (got_double) {
+        scm_val CELL(v, FLOAT, NIL, NIL) ;
+        v.c->data.f = rv ;
+        return v ;
+    }
+    return MKTAG((long)rv, FIXNUM) ;
 }
 
 scm_val     reverse_bang(scm_val args) {
@@ -70,7 +76,7 @@ DEFINE_FUNC(fn_append_bang) {
 DEFINE_FUNC(fn_append) {
     scm_val head = NIL, tail = NIL, x, v ;
 
-    FOREACH(x, args) {
+    FOREACH(x, args)
         if (NULL_P(CDR(x)))
             if (NULL_P(head))
                 head = tail = CAR(x) ;
@@ -83,7 +89,6 @@ DEFINE_FUNC(fn_append) {
                 else
                     tail = CDR(tail) = cons(CAR(v), NIL) ;
             }
-    }
     return head ;
 }
 
@@ -112,9 +117,9 @@ DEFINE_FUNC(fn_foldl_cmp) {
         double y = FLOAT_OF(CAR(v)) ;
         switch (UNTAG(hint)) {
             case '=': rv = rv && (x == y) ; break ;
-            case '>': rv = rv && (x > y) ; break ;
+            case '>': rv = rv && (x >  y) ; break ;
             case 'g': rv = rv && (x >= y) ; break ;
-            case '<': rv = rv && (x < y) ; break ;
+            case '<': rv = rv && (x <  y) ; break ;
             case 'l': rv = rv && (x <= y) ; break ;
             case '!': rv = rv && (x != y) ; break ;
             default:
@@ -201,31 +206,32 @@ DEFINE_FUNC(fn_if) {
 }
 
 DEFINE_FUNC(syn_lambda) {
-    scm_val proc = mkcell(PROCEDURE) ;
-    CAR(proc) = args ;
-    CDR(proc) = scm->e ;
+    scm_val CELL(proc, PROCEDURE, args, scm->e) ;
     return proc ;
 }
 
 DEFINE_FUNC(syn_syntax_lambda) {
-    scm_val proc = mkcell(PROCEDURE) ;
+    scm_val CELL(proc, PROCEDURE, args, scm->e) ;
     proc.c->flags |= FL_SYNTAX | FL_EVAL ;
-    CAR(proc) = args ;
-    CDR(proc) = scm->e ;
     return proc ;
 }
 
 DEFINE_FUNC(syn_transform_lambda) {
-    scm_val proc = mkcell(PROCEDURE) ;
+    scm_val CELL(proc, PROCEDURE, args, scm->e) ;
     proc.c->flags |= FL_SYNTAX ;
-    CAR(proc) = args ;
-    CDR(proc) = scm->e ;
     return proc ;
 }
 
 DEFINE_FUNC(fn_pair_p) { return PAIR_P(CAR(args)) ? TRUE : FALSE ; }
 DEFINE_FUNC(fn_list_p) { return LIST_P(CAR(args)) ? TRUE : FALSE ; }
 DEFINE_FUNC(fn_null_p) { return NULL_P(CAR(args)) ? TRUE : FALSE ; }
+
+scm_val     make_builtin(int flags, native_proc f, scm_val hint) {
+    scm_val CELL(proc, PROCEDURE, NIL, hint) ;
+    proc.c->flags = FL_BUILTIN | flags ;
+    CAR(proc).p = f ;
+    return proc ;
+}
 
 #define DEF_PROC_CHAR(name, func, hint)  \
     env_define(env, intern(name), make_builtin(0, func, MKTAG(hint, CHAR)))

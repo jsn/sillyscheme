@@ -24,15 +24,15 @@ static scm_val parse_fixnum(char *s) {
 }
 
 static scm_val parse_float(char *s) {
-    scm_val v = make_float(strtod(s, &s)) ;
+    scm_val CELL(v, FLOAT, NIL, NIL) ;
+    v.c->data.f = strtod(s, &s) ;
     ASSERT(!*s) ;
     return v ;
 }
 
 static scm_val parse_string(const char *s) {
-    scm_val v = mkcell(STRING) ;
+    scm_val CELL(v, STRING, NIL, MKTAG(strlen(s), FIXNUM)) ;
     ENSURE(CAR(v).p = strdup(s), "strdup()") ;
-    CDR(v).l = strlen(s) ;
     return v ;
 }
 

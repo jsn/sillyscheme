@@ -43,35 +43,17 @@ scm_val     assq(scm_val alist, scm_val key) {
     return FALSE ;
 }
 
-scm_val mkcell(int type) {
-    scm_val v ;
-    ENSURE(v.c = malloc(sizeof(struct cell)), "malloc()") ;
-    v.c->type = type ;
-    return v ;
-}
-
 int         type_of(scm_val v) {
     return TAG(v) == 0 ?
         (NULL_P(v) ? NONE : v.c->type) : TAG(v) ;
 }
 
 scm_val     cons(scm_val car, scm_val cdr) {
-    scm_val v = mkcell(CONS) ;
+    scm_val v ;
+    ENSURE(v.c = malloc(sizeof(struct cell)), "malloc()") ;
+    v.c->type = CONS ;
     CAR(v) = car ;
     CDR(v) = cdr ;
     return v ;
 }
 
-scm_val     make_builtin(int flags, native_proc f, scm_val hint) {
-    scm_val v = mkcell(PROCEDURE) ;
-    v.c->flags = FL_BUILTIN | flags ;
-    CAR(v).p = f ;
-    CDR(v) = hint ;
-    return v ;
-}
-
-scm_val     make_float(double x) {
-    scm_val v = mkcell(FLOAT) ;
-    v.c->data.f = x ;
-    return v ;
-}

@@ -64,11 +64,10 @@ void        scm_print(scm_val v, FILE *fp) ;
 
 scm_val     intern(const char *s) ;
 const char  *sym_to_string(scm_val v) ;
-scm_val     mkcell(int type) ;
 int         type_of(scm_val v) ;
 
-scm_val     make_float(double x) ;
-scm_val     make_builtin(int syntax, native_proc f, scm_val hint) ;
+#define     CELL(v, t, car_, cdr_) v = cons(car_, cdr_) ; v.c->type = t
+
 scm_val     cons(scm_val car, scm_val cdr) ;
 scm_val     assq(scm_val alist, scm_val key) ;
 
@@ -93,8 +92,8 @@ scm_val     assq(scm_val alist, scm_val key) ;
 #define     SYNTAX_P(x) (type_of(x) == PROCEDURE && ((x).c->flags & FL_SYNTAX))
 
 scm_val     env_create(scm_val parent) ;
-scm_val     env_get_pair(scm_val env, scm_val key, int force, int up) ;
 scm_val     env_get(scm_val env, scm_val key) ;
+scm_val     env_get_pair(scm_val env, scm_val key, int force, int up) ;
 #define env_define(env, key, val) CDR(env_get_pair(env, key, 1, 0)) = val
 #define env_set(env, key, val) CDR(env_get_pair(env, key, 1, 1)) = val
 scm_val     env_bind_formals(scm_val parent, scm_val formals, scm_val values) ;
@@ -105,7 +104,6 @@ scm_val     scm_eval(Silly scm, scm_val code) ;
 scm_val     scm_load_file(Silly scm, const char *fname) ;
 void        scm_push(Silly scm, scm_val s, scm_val e, scm_val c) ;
 scm_val     scm_apply(scm_val args, Silly scm, scm_val hint) ;
-scm_val     reverse_bang(scm_val args) ;
 scm_val     reverse_append(scm_val args, scm_val head) ;
 
 scm_val     fn_eval(scm_val args, Silly scm, scm_val hint) ;

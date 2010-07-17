@@ -32,8 +32,7 @@ scm_val     scm_load_file(Silly scm, const char *fname) {
 #define PUSH(x)     scm->s = cons(cons(x, CAR(scm->s)), CDR(scm->s))
 
 scm_val     scm_capture_cont(Silly scm) {
-    scm_val c = cons(cons(scm->s, cons(scm->e, scm->c)), scm->d) ;
-    c.c->type = CONTINUATION ;
+    scm_val CELL(c, CONTINUATION, cons(scm->s, cons(scm->e, scm->c)), scm->d) ;
     return c ;
 }
 
@@ -165,13 +164,12 @@ scm_val     scm_eval(Silly scm, scm_val code) {
 static void run_file(const char *fname, const char *msg) {
     FILE    *fp ;
     struct scm_scanner *scan ;
-    Silly scm ;
+    Silly scm = scm_create_evaluator() ;
     scm_val v = NIL ;
 
     printf("%s: ", msg) ;
     ASSERT(fp = fopen(fname, "r")) ;
     scan = scm_create_scanner(fp) ;
-    scm = scm_create_evaluator() ;
     while (!EQ_P(v, SCM_EOF))
         v = scm_eval(scm, scm_read(scan, NIL)) ;
     scm_destroy_scanner(scan) ;
