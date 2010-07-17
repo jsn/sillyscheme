@@ -151,12 +151,13 @@ static scm_val run_file(const char *fname) {
     FILE    *fp ;
     struct scm_scanner *scan ;
     struct evaluator *scm ;
-    scm_val v ;
+    scm_val v = NIL ;
 
     ASSERT(fp = fopen(fname, "r")) ;
     scan = scm_create_scanner(fp) ;
     scm = scm_create_evaluator() ;
-    v = scm_eval(scm, scm_read(scan, NIL)) ;
+    while (!EQ_P(v, SCM_EOF))
+        v = scm_eval(scm, scm_read(scan, NIL)) ;
     scm_destroy_scanner(scan) ;
     return v ;
 }
@@ -169,5 +170,7 @@ void        eval_tests(void) {
             "factorial of 10 using y-combinator") ;
     SCM_DEBUG(run_file("tests/fact-tail.scm"),
             "tail-recursive factorial of 10 using y-combinator") ;
+    SCM_DEBUG(run_file("tests/fact-named.scm"), "named factorial of 10") ;
+    SCM_DEBUG(run_file("tests/misc.scm"), "misc tests")
     fflush(stdout) ;
 }
