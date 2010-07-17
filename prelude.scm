@@ -11,9 +11,9 @@
   (syntax-lambda (sym val) `(_set! ',sym ,val)))
 
 (define map
-  (lambda (f list)
-    (if (null? list) '()
-      (cons (f (car list)) (map f (cdr list))))))
+  (lambda (f list . done)
+    (if (null? list) (reverse! done)
+      (apply map f (cdr list) (cons (f (car list)) done)))))
 
 (define begin
   (syntax-lambda (first . rest)

@@ -86,6 +86,20 @@ DEFINE_FUNC(fn_append) {
     }
     return head ;
 }
+
+DEFINE_FUNC(fn_apply) {
+    scm_val head = NIL, tail = NIL, x ;
+
+    FOREACH(x, args) {
+        scm_val v = NULL_P(CDR(x)) ? CAR(x) : cons(CAR(x), NIL) ;
+        if (NULL_P(head))
+            head = tail = v ;
+        else
+            tail = CDR(tail) = v ;
+    }
+    return scm_apply(head, scm, hint) ;
+}
+
 DEFINE_FUNC(fn_foldl_cmp) {
     scm_val v ;
     int  rv = 1 ;

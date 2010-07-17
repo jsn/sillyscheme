@@ -43,7 +43,7 @@ scm_val     cons(scm_val car, scm_val cdr) {
 }
 
 scm_val     make_builtin(
-        int flags, scm_val (*f)(scm_val args, scm_val env, scm_val hint),
+        int flags, scm_val (*f)(scm_val args, struct evaluator *scm, scm_val hint),
         scm_val hint) {
     scm_val v = mkcell(PROCEDURE) ;
     v.c->flags = FL_BUILTIN | flags ;

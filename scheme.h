@@ -99,15 +99,15 @@ scm_val     env_get(scm_val env, scm_val key) ;
 #define env_set(env, key, val) CDR(env_get_pair(env, key, 1, 1)) = val
 scm_val     env_bind_formals(scm_val parent, scm_val formals, scm_val values) ;
 
-struct evaluator    *scm_create_evaluator(void) ;
-void                define_toplevels(scm_val env) ;
-scm_val             scm_eval(struct evaluator *scm, scm_val code) ;
-scm_val             scm_load_file(struct evaluator *scm, const char *fname) ;
+struct evaluator *scm_create_evaluator(void) ;
+void             define_toplevels(scm_val env) ;
+scm_val          scm_eval(struct evaluator *scm, scm_val code) ;
+scm_val          scm_load_file(struct evaluator *scm, const char *fname) ;
 void    scm_push(struct evaluator *scm, scm_val s, scm_val e, scm_val c) ;
-scm_val             fn_apply(scm_val args, struct evaluator *scm, scm_val hint);
-scm_val             fn_eval(scm_val args, struct evaluator *scm, scm_val hint) ;
-scm_val             reverse_bang(scm_val args) ;
-scm_val             reverse_append(scm_val args, scm_val head) ;
+scm_val          fn_eval(scm_val args, struct evaluator *scm, scm_val hint) ;
+scm_val          scm_apply(scm_val args, struct evaluator *scm, scm_val hint) ;
+scm_val          reverse_bang(scm_val args) ;
+scm_val          reverse_append(scm_val args, scm_val head) ;
 
 void        die(const char *fmt, ...) ;
 

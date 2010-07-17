@@ -34,23 +34,25 @@ scm_val     env_get(scm_val env, scm_val key) {
 
 scm_val     env_bind_formals(scm_val parent, scm_val formals, scm_val values) {
     scm_val env, alist = NIL ;
-    size_t  cnt = 0 ;
 
-    while (!NULL_P(formals)) {
-        ASSERT(type_of(CAR(formals)) == SYMBOL) ;
-        alist = cons(cons(CAR(formals), CAR(values)), alist) ;
-        cnt ++ ;
+    if (type_of(formals) == SYMBOL) {
+        alist = cons(cons(formals, values), alist) ;
+        values = NIL ;
+    } else if (LIST_P(formals))
+        while (!NULL_P(formals)) {
+            ASSERT(type_of(CAR(formals)) == SYMBOL) ;
+            alist = cons(cons(CAR(formals), CAR(values)), alist) ;
 
-        if (LIST_P(CDR(formals))) {
-            formals = CDR(formals) ;
-            values = CDR(values) ;
-        } else {
-            ASSERT(type_of(CDR(formals)) == SYMBOL) ;
-            alist = cons(cons(CDR(formals), CDR(values)), alist) ;
-            values = NIL ;
-            break ;
+            if (LIST_P(CDR(formals))) {
+                formals = CDR(formals) ;
+                values = CDR(values) ;
+            } else {
+                ASSERT(type_of(CDR(formals)) == SYMBOL) ;
+                alist = cons(cons(CDR(formals), CDR(values)), alist) ;
+                values = NIL ;
+                break ;
+            }
         }
-    }
     ASSERT(NULL_P(values)) ;
 
     env = env_create(parent) ;

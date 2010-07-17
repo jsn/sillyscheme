@@ -70,7 +70,7 @@ void        scm_invoke(struct evaluator *scm, scm_val c) {
     scm->c = apply ;
 }
 
-scm_val fn_apply(scm_val args, struct evaluator *scm, scm_val hint) {
+scm_val scm_apply(scm_val args, struct evaluator *scm, scm_val hint) {
     scm_val proc = CAR(args), as = CDR(args) ;
 
     if (type_of(proc) != PROCEDURE) {
@@ -125,7 +125,7 @@ scm_val             scm_eval(struct evaluator *scm, scm_val code) {
                     scm_val args = CAR(scm->s) ;
                     scm->s = CDR(scm->s) ;
 
-                    c = fn_apply(args, scm, NIL) ;
+                    c = scm_apply(args, scm, NIL) ;
 
                     if (EQ_P(c, S_EVAL)) continue ;
                 } else if (EQ_P(c, S_EVAL)) {
