@@ -22,14 +22,14 @@ static scm_val parse_fixnum(char *s) {
     return v ;
 }
 
-static scm_val parse_float(char *s) {
+static scm_val parse_float(Silly scm, char *s) {
     scm_val CELL(v, FLOAT, NIL, NIL) ;
     v.c->data.f = strtod(s, &s) ;
     ASSERT(!*s) ;
     return v ;
 }
 
-static scm_val parse_string(const char *s) {
+static scm_val parse_string(Silly scm, const char *s) {
     scm_val CELL(v, STRING, NIL, MKTAG(strlen(s), FIXNUM)) ;
     ENSURE(CAR(v).p = strdup(s), "strdup()") ;
     return v ;
@@ -52,9 +52,9 @@ scm_val     scm_read(Silly scm, scm_val list) {
         case 0:         v = SCM_EOF ;                           break ;
         case BOOL:      v = MKTAG((EXTRA ? 1 : 0), BOOL) ;  break ;
         case FIXNUM:    v = parse_fixnum(EXTRA) ;           break ;
-        case FLOAT:     v = parse_float(EXTRA) ;            break ;
+        case FLOAT:     v = parse_float(scm, EXTRA) ;       break ;
         case CHAR:      v = MKTAG(EXTRA[2], CHAR) ;         break ;
-        case STRING:    v = parse_string(EXTRA) ;           break ;
+        case STRING:    v = parse_string(scm, EXTRA) ;      break ;
         case SYMBOL:    v = intern(EXTRA) ;                 break ;
         case SPECIAL:
             switch(*EXTRA) {
