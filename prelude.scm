@@ -42,6 +42,21 @@
 
 (define call-with-current-continuation call/cc)
 
-(define print
-  (lambda (first . rest) (display first) (map display rest) (newline)))
+(define prompt-read
+  (lambda (prompt)
+    (print* prompt)
+    (read)))
 
+(define %%% #f)
+
+(define repl
+  (lambda ()
+    (let loop ((term (prompt-read ">> ")))
+      (if (eof-object? term) term
+        (begin
+          (let ((value (eval term)))
+            (print* "==> " )
+            (set! %%% value)
+            (display value)
+            (newline)
+            (loop (prompt-read ">> "))))))))

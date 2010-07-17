@@ -35,13 +35,15 @@ Status
 ======
 
 Latest achievements:
-    * **NBU Software proudly presents:** ``call-with-current-continuation!``
+    * **NBU Software proudly presents:** ``call-with-current-continuation`` 
+      !
+    * ``read`` / ``print`` implement, Read-Eval-Print Loop reimplemented in 
+      scheme.
     * some definitions (``set!``, ``define``, ``let``, ``if`` etc) 
       rewritten in scheme in prelude.scm, which is loaded automatically 
       during startup.
 
 What works:
-    * Read-Print-Eval Loop works.
     * Some builtin arithmetics (fixnum and double), list functions.
     * ``lambda`` works, non-builtin function calls work.
     * We can run factorial using y-combinator (see ``tests/fact.scm``).

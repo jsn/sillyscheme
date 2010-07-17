@@ -13,7 +13,6 @@ struct scm_scanner  *scm_create_scanner(FILE *fp) {
     scml_lex_init(&sc->scanner) ;
     if (fp) scml_set_in(fp, sc->scanner) ;
     scml_set_extra(&sc->extra, sc->scanner) ;
-
     return sc ;
 }
 
@@ -36,53 +35,59 @@ static scm_val parse_string(const char *s) {
     return v ;
 }
 
-static scm_val parse_quoted(struct scm_scanner *sc, const char *sym) {
-    return cons(intern(sym), cons(scm_read(sc, NIL), NIL)) ;
+static scm_val parse_quoted(Silly scm, const char *sym) {
+    return cons(intern(sym), cons(scm_read(scm, NIL), NIL)) ;
 }
 
-scm_val     scm_read(struct scm_scanner *sc, scm_val list) {
-    int     token = scml_lex(sc->scanner) ;
+scm_val     scm_read(Silly scm, scm_val list) {
+    int     token ;
+
+    if (!scm->sc) scm->sc = scm_create_scanner(scm->fp_i) ;
+    token = scml_lex(scm->sc->scanner) ;
+
+#define EXTRA   (scm->sc->extra)
+
     scm_val v ;
     switch(token) {
         case 0:         v = SCM_EOF ;                           break ;
-        case BOOL:      v = MKTAG((sc->extra ? 1 : 0), BOOL) ;  break ;
-        case FIXNUM:    v = parse_fixnum(sc->extra) ;           break ;
-        case FLOAT:     v = parse_float(sc->extra) ;            break ;
-        case CHAR:      v = MKTAG(sc->extra[2], CHAR) ;         break ;
-        case STRING:    v = parse_string(sc->extra) ;           break ;
-        case SYMBOL:    v = intern(sc->extra) ;                 break ;
+        case BOOL:      v = MKTAG((EXTRA ? 1 : 0), BOOL) ;  break ;
+        case FIXNUM:    v = parse_fixnum(EXTRA) ;           break ;
+        case FLOAT:     v = parse_float(EXTRA) ;            break ;
+        case CHAR:      v = MKTAG(EXTRA[2], CHAR) ;         break ;
+        case STRING:    v = parse_string(EXTRA) ;           break ;
+        case SYMBOL:    v = intern(EXTRA) ;                 break ;
         case SPECIAL:
-            switch(*sc->extra) {
-                case '(':  v = scm_read(sc, TRUE) ;             break ;
-                case '\'': v = parse_quoted(sc, "quote") ;      break ;
-                case '`':  v = parse_quoted(sc, "quasiquote") ; break ;
+            switch(*EXTRA) {
+                case '(':  v = scm_read(scm, TRUE) ;             break ;
+                case '\'': v = parse_quoted(scm, "quote") ;      break ;
+                case '`':  v = parse_quoted(scm, "quasiquote") ; break ;
                 case ',':
-                    v = parse_quoted(sc,
-                            sc->extra[1] ? "unquote-splicing" : "unquote") ;
+                    v = parse_quoted(scm,
+                            EXTRA[1] ? "unquote-splicing" : "unquote") ;
                     break ;
                 case ')':
-                    if (NULL_P(list)) die("unexpected '%c'\n", *sc->extra) ;
+                    if (NULL_P(list)) die("unexpected '%c'\n", *EXTRA) ;
                     if (EQ_P(list, TRUE)) return NIL ;
                     ASSERT(PAIR_P(list)) ;
                     CDR(list) = NIL ;
                     return list ;
                 case '.':
-                    if (NULL_P(list)) die("unexpected '%c'\n", *sc->extra) ;
+                    if (NULL_P(list)) die("unexpected '%c'\n", *EXTRA) ;
                     ASSERT(PAIR_P(list)) ;
-                    CDR(list) = scm_read(sc, NIL) ;
-                    if (!NULL_P(scm_read(sc, TRUE))) die("bad dotted pair\n") ;
+                    CDR(list) = scm_read(scm, NIL) ;
+                    if (!NULL_P(scm_read(scm, TRUE))) die("bad dotted pair\n") ;
                     return list ;
-                default: die("unknown special %c\n", *sc->extra) ;
+                default: die("unknown special %c\n", *EXTRA) ;
             }
             break ;
 
-        default: die("lexer says hi: %d (%s)\n", token, sc->extra) ;
+        default: die("lexer says hi: %d (%s)\n", token, EXTRA) ;
     }
 
     if (NULL_P(list)) return v ;
-    if (EQ_P(list, TRUE)) return scm_read(sc, cons(v, NIL)) ;
+    if (EQ_P(list, TRUE)) return scm_read(scm, cons(v, NIL)) ;
     ASSERT(PAIR_P(list)) ;
-    CDR(list) = scm_read(sc, cons(v, NIL)) ;
+    CDR(list) = scm_read(scm, cons(v, NIL)) ;
     return list ;
 }
 

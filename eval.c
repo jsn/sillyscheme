@@ -7,25 +7,36 @@ Silly       scm_create_evaluator(void) {
     scm->e = env_create(NIL) ;
     scm->c = NIL ;
     scm->d = NIL ;
+    scm->fp_i = stdin ;
+    scm->fp_o = stdout ;
+    scm->fp_e = stderr ;
+    scm->sc = NULL ;
     define_toplevels(scm->e) ;
+    scm->top_e = scm->e ;
     scm_load_file(scm, "prelude.scm") ;
     return scm ;
 }
 
+void        scm_set_input(Silly scm, FILE *fp) {
+    if (scm->fp_i && scm->fp_i != stdin) fclose(scm->fp_i) ;
+    if (scm->sc) free(scm->sc) ;
+    scm->sc = NULL ;
+    scm->fp_i = fp ;
+}
+
 scm_val     scm_load_file(Silly scm, const char *fname) {
-    struct scm_scanner *scan ;
     FILE *fp ;
     scm_val v = FALSE ;
 
     ENSURE(fp = fopen(fname, "r"), "scm_load_file: fopen()\n") ;
-    scan = scm_create_scanner(fp) ;
+    scm_set_input(scm, fp) ;
 
     for (;;) {
-        v = scm_read(scan, NIL) ;
+        v = scm_read(scm, NIL) ;
         if (EQ_P(v, SCM_EOF)) break ;
         v = scm_eval(scm, v) ;
     }
-    scm_destroy_scanner(scan) ;
+    scm_set_input(scm, stdin) ;
     return v ;
 }
 
@@ -97,8 +108,8 @@ scm_val     scm_apply(scm_val args, Silly scm, scm_val hint) {
 }
 
 scm_val         fn_eval(scm_val args, Silly scm, scm_val hint) {
-    PUSH(CAR(args)) ;
-    scm->c = cons(S_EVAL, scm->c) ;
+    scm_push(scm, cons(CAR(args), NIL), scm->top_e, cons(S_EVAL, NIL)) ;
+    // scm->c = cons(S_EVAL, scm->c) ;
     return S_EVAL ;
 }
 
@@ -162,17 +173,8 @@ scm_val     scm_eval(Silly scm, scm_val code) {
 }
 
 static void run_file(const char *fname, const char *msg) {
-    FILE    *fp ;
-    struct scm_scanner *scan ;
-    Silly scm = scm_create_evaluator() ;
-    scm_val v = NIL ;
-
     printf("%s: ", msg) ;
-    ASSERT(fp = fopen(fname, "r")) ;
-    scan = scm_create_scanner(fp) ;
-    while (!EQ_P(v, SCM_EOF))
-        v = scm_eval(scm, scm_read(scan, NIL)) ;
-    scm_destroy_scanner(scan) ;
+    scm_load_file(scm_create_evaluator(), fname) ;
 }
 
 void        eval_tests(void) {

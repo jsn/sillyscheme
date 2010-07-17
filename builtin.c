@@ -150,8 +150,27 @@ DEFINE_FUNC(fn_cdar) { return CDAR(CAR(args)) ; }
 DEFINE_FUNC(fn_cddr) { return CDDR(CAR(args)) ; }
 
 DEFINE_FUNC(fn_cons) { return cons(CAR(args), CADR(args)) ; }
-DEFINE_FUNC(fn_display) { scm_print(CAR(args), stdout) ; return FALSE ; }
-DEFINE_FUNC(fn_newline) { printf("\n") ; return FALSE ; }
+
+DEFINE_FUNC(fn_display) { scm_print(CAR(args), scm->fp_o) ; return FALSE ; }
+DEFINE_FUNC(fn_newline) { fprintf(scm->fp_o, "\n") ; return FALSE ; }
+DEFINE_FUNC(fn_read) { return scm_read(scm, NIL) ; }
+DEFINE_FUNC(fn_eof_object_p) { return EQ_P(CAR(args), SCM_EOF) ? TRUE : FALSE ;}
+DEFINE_FUNC(fn_print) {
+    scm_val v ;
+    FOREACH(v, args) {
+        scm_val w = CAR(v) ;
+        switch (type_of(w)) {
+            case STRING: fwrite(CAR(w).p, UNTAG(CDR(w)), 1, scm->fp_o) ; break ;
+            case CHAR: fputc(UNTAG(w), scm->fp_o) ; break ;
+            default: scm_print(w, scm->fp_o) ; break ;
+        }
+    }
+    if (EQ_P(hint, intern("print")))
+        fputc('\n', scm->fp_o) ;
+    else
+        fflush(stdout) ;
+    return FALSE ;
+}
 
 DEFINE_FUNC(syn_quote) { return CAR(args) ; }
 
@@ -264,6 +283,10 @@ void        define_toplevels(scm_val env) {
     DEF_PROC("cons", fn_cons) ;
     DEF_PROC("display", fn_display) ;
     DEF_PROC("newline", fn_newline) ;
+    DEF_PROC("read", fn_read) ;
+    DEF_PROC("print", fn_print) ;
+    DEF_PROC("print*", fn_print) ;
+    DEF_PROC("eof-object?", fn_eof_object_p) ;
     DEF_PROC("_if", fn_if) ;
     DEF_PROC("_define", fn_define) ;
     DEF_PROC("_set!", fn_set_bang) ;

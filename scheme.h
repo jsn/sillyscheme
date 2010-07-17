@@ -48,18 +48,21 @@ struct cell {
 #define FL_SYNTAX   (1 << 1)
 #define FL_EVAL     (1 << 2)
 
+struct scm_scanner ;
+
 typedef struct evaluator {
     scm_val s, e, c, d ;
+    scm_val top_e ;
+    FILE *fp_i, *fp_o, *fp_e ;
+    struct scm_scanner *sc ;
 } * Silly ;
 
 typedef scm_val (*native_proc)(scm_val args, Silly scm, scm_val hint) ;
 
-struct scm_scanner ;
-
 struct      scm_scanner *scm_create_scanner(FILE *fp) ;
 #define     scm_destroy_scanner free
 
-scm_val     scm_read(struct scm_scanner *sc, scm_val list) ;
+scm_val     scm_read(Silly scm, scm_val list) ;
 void        scm_print(scm_val v, FILE *fp) ;
 
 scm_val     intern(const char *s) ;
