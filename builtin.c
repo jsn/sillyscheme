@@ -2,7 +2,7 @@
 
 #define FLOAT_OF(x) (type_of(x) == FLOAT ? x.c->data.f : (double)UNTAG(x))
 #define DEFINE_FUNC(name)   \
-    scm_val name(scm_val args, scm_val env, scm_val hint)
+    scm_val name(scm_val args, struct evaluator *scm, scm_val hint)
 
 #define CALL(sym, cdr)  cons(intern(#sym), cdr)
 
@@ -172,12 +172,12 @@ DEFINE_FUNC(syn_quasiquote) {
 }
 
 DEFINE_FUNC(fn_define) {
-    env_define(env, CAR(args), CADR(args)) ;
+    env_define(scm->e, CAR(args), CADR(args)) ;
     return CADR(args) ;
 }
 
 DEFINE_FUNC(fn_set_bang) {
-    env_set(env, CAR(args), CADR(args)) ;
+    env_set(scm->e, CAR(args), CADR(args)) ;
     return CADR(args) ;
 }
 
@@ -189,7 +189,7 @@ DEFINE_FUNC(fn_if) {
 DEFINE_FUNC(syn_lambda) {
     scm_val proc = mkcell(PROCEDURE) ;
     CAR(proc) = args ;
-    CDR(proc) = env ;
+    CDR(proc) = scm->e ;
     return proc ;
 }
 
@@ -197,7 +197,7 @@ DEFINE_FUNC(syn_syntax_lambda) {
     scm_val proc = mkcell(PROCEDURE) ;
     proc.c->flags |= FL_SYNTAX | FL_EVAL ;
     CAR(proc) = args ;
-    CDR(proc) = env ;
+    CDR(proc) = scm->e ;
     return proc ;
 }
 
@@ -205,7 +205,7 @@ DEFINE_FUNC(syn_transform_lambda) {
     scm_val proc = mkcell(PROCEDURE) ;
     proc.c->flags |= FL_SYNTAX ;
     CAR(proc) = args ;
-    CDR(proc) = env ;
+    CDR(proc) = scm->e ;
     return proc ;
 }
 
@@ -252,34 +252,11 @@ void        define_toplevels(scm_val env) {
     DEF_PROC("list?", fn_list_p) ;
     DEF_PROC("pair?", fn_pair_p) ;
     DEF_PROC("null?", fn_null_p) ;
+    DEF_PROC("apply", fn_apply) ;
 
     DEF_SYNTAX("quote", 0, syn_quote) ;
     DEF_SYNTAX("quasiquote", FL_EVAL, syn_quasiquote) ;
     DEF_SYNTAX("lambda", 0, syn_lambda) ;
     DEF_SYNTAX("syntax-lambda", 0, syn_syntax_lambda) ;
     DEF_SYNTAX("transform-lambda", 0, syn_transform_lambda) ;
-}
-
-void        builtin_tests(void) {
-    scm_val e = env_create(NIL) ;
-    scm_val v ;
-    printf("\n;; --- BUILTIN TESTS --- ;;\n") ;
-
-    v = cons(MKTAG(3, FIXNUM), NIL) ;
-    SCM_DEBUG(fn_foldl_arith(v, e, MKTAG('+', CHAR)), "(+ 3)") ;
-    v = cons(MKTAG(6, FIXNUM), v) ;
-    SCM_DEBUG(fn_foldl_arith(v, e, MKTAG('%', CHAR)), "(% 6 3)") ;
-    SCM_DEBUG(fn_foldl_arith(v, e, MKTAG('-', CHAR)), "(- 6 3)") ;
-    SCM_DEBUG(fn_foldl_arith(v, e, MKTAG('/', CHAR)), "(/ 6 3)") ;
-    v = cons(MKTAG(9, FIXNUM), v) ;
-    SCM_DEBUG(fn_foldl_arith(v, e, MKTAG('*', CHAR)), "(* 9 6 3)") ;
-    SCM_DEBUG(fn_reverse(cons(v, NIL), e, NIL),  "(reverse '(9 6 3))") ;
-    SCM_DEBUG(v, "orig") ;
-    v = fn_reverse_bang(cons(v, NIL), e, NIL) ;
-    SCM_DEBUG(v, "(reverse! '(9 6 3))") ;
-    v = fn_reverse_bang(cons(CDR(v), NIL), e, NIL) ;
-    SCM_DEBUG(v, "(reverse! '(6 9))") ;
-    v = fn_reverse_bang(cons(CDR(v), NIL), e, NIL) ;
-    SCM_DEBUG(v, "(reverse! '(6))") ;
-    SCM_DEBUG(fn_reverse_bang(cons(NIL, NIL), e, NIL), "(reverse! '())") ;
 }

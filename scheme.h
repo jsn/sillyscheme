@@ -30,6 +30,10 @@ union _scm_val {
 #define TRUE    MKTAG(1, BOOL)
 #define SCM_EOF MKTAG(-1, CHAR)
 
+/* unique special values garanteed not to be coming from user code */
+#define S_APPLY     MKTAG(13, SPECIAL)
+#define S_EVAL      MKTAG(14, SPECIAL)
+
 typedef union _scm_val scm_val ;
 
 struct cell {
@@ -64,7 +68,7 @@ int         type_of(scm_val v) ;
 scm_val     make_float(double x) ;
 scm_val     make_builtin(
         int syntax,
-        scm_val (*f)(scm_val args, scm_val env, scm_val hint),
+        scm_val (*f)(scm_val args, struct evaluator *scm, scm_val hint),
         scm_val hint) ;
 scm_val     cons(scm_val car, scm_val cdr) ;
 scm_val     assq(scm_val alist, scm_val key) ;
@@ -99,6 +103,8 @@ struct evaluator    *scm_create_evaluator(void) ;
 void                define_toplevels(scm_val env) ;
 scm_val             scm_eval(struct evaluator *scm, scm_val code) ;
 scm_val             scm_load_file(struct evaluator *scm, const char *fname) ;
+void    scm_push(struct evaluator *scm, scm_val s, scm_val e, scm_val c) ;
+scm_val             fn_apply(scm_val args, struct evaluator *scm, scm_val hint);
 scm_val             reverse_bang(scm_val args) ;
 scm_val             reverse_append(scm_val args, scm_val head) ;
 
@@ -116,7 +122,6 @@ void        die(const char *fmt, ...) ;
 void        env_tests(void) ;
 void        assoc_tests(void) ;
 void        parse_tests(void) ;
-void        builtin_tests(void) ;
 void        eval_tests(void) ;
 
 #endif

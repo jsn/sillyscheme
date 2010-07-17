@@ -29,10 +29,6 @@ scm_val             scm_load_file(struct evaluator *scm, const char *fname) {
     return v ;
 }
 
-/* unique special values garanteed not to be coming from elsewhere */
-#define S_APPLY     MKTAG(13, SPECIAL)
-#define S_EVAL      MKTAG(14, SPECIAL)
-
 #define PUSH(x)     scm->s = cons(cons(x, CAR(scm->s)), CDR(scm->s))
 
 void                scm_push(struct evaluator *scm,
@@ -74,19 +70,19 @@ void        scm_invoke(struct evaluator *scm, scm_val c) {
     scm->c = apply ;
 }
 
-scm_val         scm_apply(struct evaluator *scm) {
-    scm_val proc = CAAR(scm->s), args = CDAR(scm->s) ;
-    scm->s = CDR(scm->s) ;
+scm_val fn_apply(scm_val args, struct evaluator *scm, scm_val hint) {
+    scm_val proc = CAR(args), as = CDR(args) ;
 
     if (type_of(proc) != PROCEDURE) {
         SCM_DEBUG(proc, "not a procedure") ;
         die("") ;
     }
+
     if (proc.c->flags & FL_BUILTIN) {
         scm_val (*f)() = CAR(proc).p ;
-        return f(args, scm->e, CDR(proc)) ;
+        return f(as, scm, CDR(proc)) ;
     } else {
-        scm_val e = env_bind_formals(CDR(proc), CAAR(proc), args) ;
+        scm_val e = env_bind_formals(CDR(proc), CAAR(proc), as) ;
 
         if (NULL_P(scm->c) && !NULL_P(CDR(scm->e))) {   /* tail call */
             scm->e = e ;
@@ -97,6 +93,7 @@ scm_val         scm_apply(struct evaluator *scm) {
         return S_EVAL ;
     }
 }
+
 
 scm_val             scm_eval(struct evaluator *scm, scm_val code) {
     scm->s = cons(NIL, NIL) ;
@@ -121,7 +118,11 @@ scm_val             scm_eval(struct evaluator *scm, scm_val code) {
 
             case SPECIAL:
                 if (EQ_P(c, S_APPLY)) {
-                    c = scm_apply(scm) ;
+                    scm_val args = CAR(scm->s) ;
+                    scm->s = CDR(scm->s) ;
+
+                    c = fn_apply(args, scm, NIL) ;
+
                     if (EQ_P(c, S_EVAL)) continue ;
                 } else if (EQ_P(c, S_EVAL)) {
                     scm->c = cons(CAAR(scm->s), scm->c) ;
