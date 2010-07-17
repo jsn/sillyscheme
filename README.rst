@@ -5,8 +5,7 @@ Status
 ======
 
 Latest achievements:
-    * NBU Software proudly presents: *quasiquote* and **user defined**
-      **macros!**
+    * **NBU Software proudly presents: *call-with-current-continuation*!**
     * some definitions (*set!*, *define* and *if*) rewritten in scheme in 
       prelude.scm, which is loaded automatically during startup.
 
@@ -17,10 +16,10 @@ What works:
     * We can run factorial using y-combinator (see tests/fact.scm).
     * Lexical bindings.
     * Tail-call elimination works.
+    * *quasiquote* and user defined macros.
 
 What doesn't:
     * No memory management yet.
-    * No continuations.
     * Error handling is just not there.
 
 Design
@@ -112,9 +111,10 @@ TODO
       * [x] syntax
 * [x] print
 * [x] tail calls
-* [ ] continuations
+* [x] continuations
 * [ ] GC
 
 Next up:
 --------
-The almightly call-with-current-continuation?
+No idea yet, some code cleanup is due, I guess.
+After that, memory management and scheme bootstrapping.

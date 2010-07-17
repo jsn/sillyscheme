@@ -268,6 +268,8 @@ void        define_toplevels(scm_val env) {
     DEF_PROC("null?", fn_null_p) ;
     DEF_PROC("apply", fn_apply) ;
     DEF_PROC("eval", fn_eval) ;
+    DEF_PROC("capture/cc", fn_capture_cc) ;
+    DEF_PROC("apply/cc", fn_apply_cc) ;
 
     DEF_SYNTAX("quote", 0, syn_quote) ;
     DEF_SYNTAX("quasiquote", FL_EVAL, syn_quasiquote) ;

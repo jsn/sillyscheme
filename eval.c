@@ -12,7 +12,7 @@ struct evaluator    *scm_create_evaluator(void) {
     return scm ;
 }
 
-scm_val             scm_load_file(struct evaluator *scm, const char *fname) {
+scm_val     scm_load_file(struct evaluator *scm, const char *fname) {
     struct scm_scanner *scan ;
     FILE *fp ;
     scm_val v = FALSE ;
@@ -31,22 +31,31 @@ scm_val             scm_load_file(struct evaluator *scm, const char *fname) {
 
 #define PUSH(x)     scm->s = cons(cons(x, CAR(scm->s)), CDR(scm->s))
 
-void                scm_push(struct evaluator *scm,
+scm_val     scm_capture_cont(struct evaluator *scm) {
+    scm_val c = cons(cons(scm->s, cons(scm->e, scm->c)), scm->d) ;
+    c.c->type = CONTINUATION ;
+    return c ;
+}
+
+void        scm_apply_cont(struct evaluator *scm, scm_val cont) {
+    scm_val     os = CAAR(scm->s) ;
+    ASSERT(type_of(cont) == CONTINUATION) ;
+    scm->s = CAAR(cont) ;
+    PUSH(os) ;
+    scm->e = CADAR(cont) ;
+    scm->c = CDDAR(cont) ;
+    scm->d = CDR(cont) ;
+}
+
+void        scm_push(struct evaluator *scm,
         scm_val s, scm_val e, scm_val c) {
-    scm->d = cons(cons(scm->s, cons(scm->e, scm->c)), scm->d) ;
+    scm->d = scm_capture_cont(scm) ;
     scm->c = c ;
     scm->e = e ;
     scm->s = cons(s, NIL) ;
 }
 
-void                scm_pop(struct evaluator *scm) {
-    scm_val     os = CAAR(scm->s) ;
-    scm->s = CAAR(scm->d) ;
-    PUSH(os) ;
-    scm->e = CADAR(scm->d) ;
-    scm->c = CDDAR(scm->d) ;
-    scm->d = CDR(scm->d) ;
-}
+void        scm_pop(struct evaluator *scm) { scm_apply_cont(scm, scm->d) ; }
 
 void        scm_invoke(struct evaluator *scm, scm_val c) {
     scm_val code = CAR(c), args = CDR(c) ;
@@ -70,7 +79,7 @@ void        scm_invoke(struct evaluator *scm, scm_val c) {
     scm->c = apply ;
 }
 
-scm_val scm_apply(scm_val args, struct evaluator *scm, scm_val hint) {
+scm_val     scm_apply(scm_val args, struct evaluator *scm, scm_val hint) {
     scm_val proc = CAR(args), as = CDR(args) ;
 
     if (type_of(proc) != PROCEDURE) {
@@ -94,16 +103,29 @@ scm_val scm_apply(scm_val args, struct evaluator *scm, scm_val hint) {
     }
 }
 
-scm_val fn_eval(scm_val args, struct evaluator *scm, scm_val hint) {
+scm_val         fn_eval(scm_val args, struct evaluator *scm, scm_val hint) {
     PUSH(CAR(args)) ;
     scm->c = cons(S_EVAL, scm->c) ;
     return S_EVAL ;
 }
 
-scm_val             scm_eval(struct evaluator *scm, scm_val code) {
+
+scm_val     fn_capture_cc(scm_val args, struct evaluator *scm, scm_val hint) {
+    scm->s = cons(cons(CAR(args), cons(scm_capture_cont(scm), NIL)), scm->s) ;
+    scm->c = cons(S_APPLY, scm->c) ;
+    return S_EVAL ;
+}
+
+scm_val     fn_apply_cc(scm_val args, struct evaluator *scm, scm_val hint) {
+    PUSH(CADR(args)) ;
+    scm_apply_cont(scm, CAR(args)) ;
+    return S_EVAL ;
+}
+
+scm_val         scm_eval(struct evaluator *scm, scm_val code) {
     scm->c = cons(code, scm->c) ;
 
-    while (PAIR_P(scm->c) || PAIR_P(scm->d)) {
+    while (PAIR_P(scm->c) || CONTINUATION_P(scm->d)) {
         scm_val c ;
 
         if (NULL_P(scm->c)) {
@@ -147,7 +169,7 @@ scm_val             scm_eval(struct evaluator *scm, scm_val code) {
     return code ;
 }
 
-static scm_val run_file(const char *fname) {
+static scm_val  run_file(const char *fname) {
     FILE    *fp ;
     struct scm_scanner *scan ;
     struct evaluator *scm ;
@@ -162,7 +184,7 @@ static scm_val run_file(const char *fname) {
     return v ;
 }
 
-void        eval_tests(void) {
+void            eval_tests(void) {
 
     printf("\n;; --- EVAL TESTS --- ;;\n") ;
 
@@ -172,5 +194,6 @@ void        eval_tests(void) {
             "tail-recursive factorial of 10 using y-combinator") ;
     SCM_DEBUG(run_file("tests/fact-named.scm"), "named factorial of 10") ;
     SCM_DEBUG(run_file("tests/misc.scm"), "misc tests")
+    SCM_DEBUG(run_file("tests/call-cc.scm"), "call-cc tests")
     fflush(stdout) ;
 }

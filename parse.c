@@ -149,6 +149,10 @@ void        scm_print(scm_val v, FILE *fp) {
                     fprintf(fp, ">") ;
                     break ;
 
+                case CONTINUATION:
+                    fprintf(fp, "#<continuation [%p]>", v.p) ;
+                    break ;
+
                 default:
                     die("unknown cell type %d\n", v.c->type) ;
             }
@@ -162,7 +166,7 @@ void        parse_tests(void) {
 
     printf("\n;; --- PARSE TESTS --- ;;\n") ;
 
-    ASSERT(fp = fopen("tests/parse.scm", "r")) ;
+    ASSERT(fp = fopen("tests/call-cc.scm", "r")) ;
     scanner = scm_create_scanner(fp) ;
 
     for (;;) {

@@ -36,3 +36,12 @@
                    `(unnamed-let ,head ,@rest)
                    `(named-let ,head ,@rest))))
 
+(define call/cc
+  (lambda (f)
+    (capture/cc (lambda (c) (f (lambda (val) (apply/cc c val)))))))
+
+(define call-with-current-continuation call/cc)
+
+(define print
+  (lambda (first . rest) (display first) (map display rest) (newline)))
+

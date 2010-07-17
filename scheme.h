@@ -7,7 +7,7 @@
 enum scm_types {                                /* i-something */
     NONE, FIXNUM, CHAR, BOOL, SYMBOL, SPECIAL,  /* immediate */ 
     CONS, FLOAT, STRING,                        /* indirection */
-    PROCEDURE                                   /* immaterial */
+    PROCEDURE, CONTINUATION                     /* immaterial */
 } ;
 
 #define TAGBITS     3
@@ -75,6 +75,7 @@ scm_val     assq(scm_val alist, scm_val key) ;
 
 #define     PAIR_P(v)   (type_of(v) == CONS)
 #define     LIST_P(v)   (type_of(v) == NONE || PAIR_P(v))
+#define     CONTINUATION_P(v)   (type_of(v) == CONTINUATION)
 
 #define     CAR(v)      ((v).c)->data.cons.car
 #define     CDR(v)      ((v).c)->data.cons.cdr
@@ -104,10 +105,13 @@ void             define_toplevels(scm_val env) ;
 scm_val          scm_eval(struct evaluator *scm, scm_val code) ;
 scm_val          scm_load_file(struct evaluator *scm, const char *fname) ;
 void    scm_push(struct evaluator *scm, scm_val s, scm_val e, scm_val c) ;
-scm_val          fn_eval(scm_val args, struct evaluator *scm, scm_val hint) ;
 scm_val          scm_apply(scm_val args, struct evaluator *scm, scm_val hint) ;
 scm_val          reverse_bang(scm_val args) ;
 scm_val          reverse_append(scm_val args, scm_val head) ;
+
+scm_val      fn_eval(scm_val args, struct evaluator *scm, scm_val hint) ;
+scm_val      fn_capture_cc(scm_val args, struct evaluator *scm, scm_val hint) ;
+scm_val      fn_apply_cc(scm_val args, struct evaluator *scm, scm_val hint) ;
 
 void        die(const char *fmt, ...) ;
 
