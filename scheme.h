@@ -61,8 +61,6 @@ const char  *sym_to_string(scm_val v) ;
 scm_val     mkcell(int type) ;
 int         type_of(scm_val v) ;
 
-scm_val     list_p(scm_val v) ;
-scm_val     pair_p(scm_val v) ;
 scm_val     make_float(double x) ;
 scm_val     make_builtin(
         int syntax,

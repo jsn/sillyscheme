@@ -209,6 +209,10 @@ DEFINE_FUNC(syn_transform_lambda) {
     return proc ;
 }
 
+DEFINE_FUNC(fn_pair_p) { return PAIR_P(CAR(args)) ? TRUE : FALSE ; }
+DEFINE_FUNC(fn_list_p) { return LIST_P(CAR(args)) ? TRUE : FALSE ; }
+DEFINE_FUNC(fn_null_p) { return NULL_P(CAR(args)) ? TRUE : FALSE ; }
+
 #define DEF_PROC_CHAR(name, func, hint)  \
     env_define(env, intern(name), make_builtin(0, func, MKTAG(hint, CHAR)))
 
@@ -245,6 +249,9 @@ void        define_toplevels(scm_val env) {
     DEF_PROC("_set!", fn_set_bang) ;
     DEF_PROC("append!", fn_append_bang) ;
     DEF_PROC("append", fn_append) ;
+    DEF_PROC("list?", fn_list_p) ;
+    DEF_PROC("pair?", fn_pair_p) ;
+    DEF_PROC("null?", fn_null_p) ;
 
     DEF_SYNTAX("quote", 0, syn_quote) ;
     DEF_SYNTAX("quasiquote", FL_EVAL, syn_quasiquote) ;

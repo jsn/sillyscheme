@@ -9,3 +9,9 @@
 
 (define set!
   (syntax-lambda (sym val) `(_set! ',sym ,val)))
+
+(define map
+  (lambda (f list)
+    (if (null? list) '()
+      (cons (f (car list)) (map f (cdr list))))))
+

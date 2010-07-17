@@ -35,16 +35,6 @@ int         type_of(scm_val v) {
         (NULL_P(v) ? NONE : v.c->type) : TAG(v) ;
 }
 
-scm_val     pair_p(scm_val v) {
-    return NULL_P(v) ? FALSE : list_p(v) ;
-}
-
-scm_val     list_p(scm_val v) {
-    if (EQ_P(v, NIL)) return TRUE ;
-    if (TAG(v)) return FALSE ;
-    return v.c->type == CONS ? TRUE : FALSE ;
-}
-
 scm_val     cons(scm_val car, scm_val cdr) {
     scm_val v = mkcell(CONS) ;
     CAR(v) = car ;
