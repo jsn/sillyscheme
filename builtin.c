@@ -2,7 +2,7 @@
 
 #define FLOAT_OF(x) (type_of(x) == FLOAT ? x.c->data.f : (double)UNTAG(x))
 #define DEFINE_FUNC(name)   \
-    scm_val name(scm_val args, struct evaluator *scm, scm_val hint)
+    scm_val name(scm_val args, Silly scm, scm_val hint)
 
 #define CALL(sym, cdr)  cons(intern(#sym), cdr)
 

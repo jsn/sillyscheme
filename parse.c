@@ -17,21 +17,15 @@ struct scm_scanner  *scm_create_scanner(FILE *fp) {
     return sc ;
 }
 
-void                scm_destroy_scanner(struct scm_scanner *sc) { free(sc) ; }
-
-static scm_val parse_fixnum(const char *s) {
-    long l ;
-    char *ep ;
-
-    l = strtol(s, &ep, 0) ;
-    ASSERT(!*ep) ;
-    return MKTAG(l, FIXNUM) ;
+static scm_val parse_fixnum(char *s) {
+    scm_val v = MKTAG(strtol(s, &s, 0), FIXNUM) ;
+    ASSERT(!*s) ;
+    return v ;
 }
 
-static scm_val parse_float(const char *s) {
-    char *ep ;
-    scm_val v = make_float(strtod(s, &ep)) ;
-    ASSERT(!*ep) ;
+static scm_val parse_float(char *s) {
+    scm_val v = make_float(strtod(s, &s)) ;
+    ASSERT(!*s) ;
     return v ;
 }
 
@@ -76,16 +70,13 @@ scm_val     scm_read(struct scm_scanner *sc, scm_val list) {
                     if (NULL_P(list)) die("unexpected '%c'\n", *sc->extra) ;
                     ASSERT(PAIR_P(list)) ;
                     CDR(list) = scm_read(sc, NIL) ;
-                    if (!EQ_P(scm_read(sc, TRUE), NIL))
-                        die("bad dotted pair\n") ;
+                    if (!NULL_P(scm_read(sc, TRUE))) die("bad dotted pair\n") ;
                     return list ;
-                default:
-                    die("unknown special %c\n", *sc->extra) ;
+                default: die("unknown special %c\n", *sc->extra) ;
             }
             break ;
 
-        default:
-            die("lexer says hi: %d (%s)\n", token, sc->extra) ;
+        default: die("lexer says hi: %d (%s)\n", token, sc->extra) ;
     }
 
     if (NULL_P(list)) return v ;
@@ -128,9 +119,10 @@ void        scm_print(scm_val v, FILE *fp) {
         default: {
             switch (v.c->type) {
                 case FLOAT: fprintf(fp, "%f", v.c->data.f) ; break ;
-                case STRING:
-                    fprintf(fp, "\"%s\"", (char *)CAR(v).p) ;
-                    break ;
+                case STRING: fprintf(fp, "\"%s\"", (char *)CAR(v).p) ; break ;
+                case CONTINUATION:
+                    fprintf(fp, "#<continuation [%p]>", v.p) ; break ;
+
                 case PROCEDURE:
                     fprintf(fp, "#<%s%s ",
                             ((v.c->flags & FL_BUILTIN) ? "builtin " : ""),
@@ -149,32 +141,8 @@ void        scm_print(scm_val v, FILE *fp) {
                     fprintf(fp, ">") ;
                     break ;
 
-                case CONTINUATION:
-                    fprintf(fp, "#<continuation [%p]>", v.p) ;
-                    break ;
-
-                default:
-                    die("unknown cell type %d\n", v.c->type) ;
+                default: die("unknown cell type %d\n", v.c->type) ;
             }
         }
     }
-}
-
-void        parse_tests(void) {
-    FILE    *fp ;
-    struct scm_scanner *scanner ;
-
-    printf("\n;; --- PARSE TESTS --- ;;\n") ;
-
-    ASSERT(fp = fopen("tests/call-cc.scm", "r")) ;
-    scanner = scm_create_scanner(fp) ;
-
-    for (;;) {
-        scm_val v = scm_read(scanner, NIL) ;
-        scm_print(v, stdout) ;
-        printf("\n;;;;\n") ;
-        if (EQ_P(v, SCM_EOF)) break ;
-    }
-    scm_destroy_scanner(scanner) ;
-    fflush(stdout) ;
 }

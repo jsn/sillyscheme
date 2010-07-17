@@ -2,10 +2,9 @@
 
 int main (int ac, char const* av[]) {
     struct scm_scanner *scan = scm_create_scanner(stdin) ;
-    struct evaluator *scm = scm_create_evaluator() ;
+    Silly scm = scm_create_evaluator() ;
 
     scm_val last = intern("\%\%\%") ;
-
     env_define(scm->e, last, FALSE) ;
 
     for (;;) {
@@ -19,6 +18,5 @@ int main (int ac, char const* av[]) {
         scm_print(v, stdout) ;
     }
     scm_destroy_scanner(scan) ;
-    fflush(stdout) ;
     return 0;
 }

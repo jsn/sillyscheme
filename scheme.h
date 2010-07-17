@@ -48,14 +48,16 @@ struct cell {
 #define FL_SYNTAX   (1 << 1)
 #define FL_EVAL     (1 << 2)
 
-struct evaluator {
+typedef struct evaluator {
     scm_val s, e, c, d ;
-};
+} * Silly ;
+
+typedef scm_val (*native_proc)(scm_val args, Silly scm, scm_val hint) ;
 
 struct scm_scanner ;
 
 struct      scm_scanner *scm_create_scanner(FILE *fp) ;
-void        scm_destroy_scanner(struct scm_scanner *sc) ;
+#define     scm_destroy_scanner free
 
 scm_val     scm_read(struct scm_scanner *sc, scm_val list) ;
 void        scm_print(scm_val v, FILE *fp) ;
@@ -66,10 +68,7 @@ scm_val     mkcell(int type) ;
 int         type_of(scm_val v) ;
 
 scm_val     make_float(double x) ;
-scm_val     make_builtin(
-        int syntax,
-        scm_val (*f)(scm_val args, struct evaluator *scm, scm_val hint),
-        scm_val hint) ;
+scm_val     make_builtin(int syntax, native_proc f, scm_val hint) ;
 scm_val     cons(scm_val car, scm_val cdr) ;
 scm_val     assq(scm_val alist, scm_val key) ;
 
@@ -100,18 +99,18 @@ scm_val     env_get(scm_val env, scm_val key) ;
 #define env_set(env, key, val) CDR(env_get_pair(env, key, 1, 1)) = val
 scm_val     env_bind_formals(scm_val parent, scm_val formals, scm_val values) ;
 
-struct evaluator *scm_create_evaluator(void) ;
-void             define_toplevels(scm_val env) ;
-scm_val          scm_eval(struct evaluator *scm, scm_val code) ;
-scm_val          scm_load_file(struct evaluator *scm, const char *fname) ;
-void    scm_push(struct evaluator *scm, scm_val s, scm_val e, scm_val c) ;
-scm_val          scm_apply(scm_val args, struct evaluator *scm, scm_val hint) ;
-scm_val          reverse_bang(scm_val args) ;
-scm_val          reverse_append(scm_val args, scm_val head) ;
+Silly       scm_create_evaluator(void) ;
+void        define_toplevels(scm_val env) ;
+scm_val     scm_eval(Silly scm, scm_val code) ;
+scm_val     scm_load_file(Silly scm, const char *fname) ;
+void        scm_push(Silly scm, scm_val s, scm_val e, scm_val c) ;
+scm_val     scm_apply(scm_val args, Silly scm, scm_val hint) ;
+scm_val     reverse_bang(scm_val args) ;
+scm_val     reverse_append(scm_val args, scm_val head) ;
 
-scm_val      fn_eval(scm_val args, struct evaluator *scm, scm_val hint) ;
-scm_val      fn_capture_cc(scm_val args, struct evaluator *scm, scm_val hint) ;
-scm_val      fn_apply_cc(scm_val args, struct evaluator *scm, scm_val hint) ;
+scm_val     fn_eval(scm_val args, Silly scm, scm_val hint) ;
+scm_val     fn_capture_cc(scm_val args, Silly scm, scm_val hint) ;
+scm_val     fn_apply_cc(scm_val args, Silly scm, scm_val hint) ;
 
 void        die(const char *fmt, ...) ;
 
@@ -125,7 +124,6 @@ void        die(const char *fmt, ...) ;
 }
 
 void        env_tests(void) ;
-void        assoc_tests(void) ;
 void        parse_tests(void) ;
 void        eval_tests(void) ;
 

@@ -1,5 +1,6 @@
 CFLAGS = -Wall # -O3 -fomit-frame-pointer
-OBJS =  scanner.o value.o util.o parse.o assoc.o env.o eval.o builtin.o
+OBJS =  scanner.o value.o parse.o env.o eval.o builtin.o
+HEADERS = scanner.h scheme.h
 LIBS = -lfl
 
 all: main runtests
@@ -11,6 +12,8 @@ runtests: runtests.c $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $< $(OBJS) $(LIBS)
 
 scanner.c scanner.h: scanner.l
+
+$(OBJS): $(HEADERS)
 
 clean:
 	rm  -f $(OBJS) main runtests scanner.[ch] 

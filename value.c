@@ -1,10 +1,19 @@
 #include "scheme.h"
 #include <string.h>
+#include <stdarg.h>
 
 #define MAX_SYMBOL  (1 << 10)
 
 size_t  nsyms ;
 char    *syms[MAX_SYMBOL] ;
+
+void        die(const char *fmt, ...) { /* i don't know where else to put it */
+    va_list vl ;
+    va_start(vl, fmt) ;
+    vfprintf(stderr, fmt, vl) ;
+    va_end(vl) ;
+    exit(-2) ;
+}
 
 scm_val intern(const char *s) {
     size_t  i ;
@@ -21,6 +30,17 @@ const char  *sym_to_string(scm_val v) {
     ASSERT(TAG(v) == SYMBOL) ;
     ASSERT(i >= 0 && i < nsyms) ;
     return syms[i] ;
+}
+
+scm_val     assq(scm_val alist, scm_val key) {
+    scm_val v ;
+
+    FOREACH(v, alist) {
+        ENSURE(LIST_P(v), "assq: not a list\n") ;
+        ENSURE(PAIR_P(CAR(v)), "assq: not a pair\n") ;
+        if (EQ_P(CAAR(v), key)) return CAR(v) ;
+    }
+    return FALSE ;
 }
 
 scm_val mkcell(int type) {
@@ -42,9 +62,7 @@ scm_val     cons(scm_val car, scm_val cdr) {
     return v ;
 }
 
-scm_val     make_builtin(
-        int flags, scm_val (*f)(scm_val args, struct evaluator *scm, scm_val hint),
-        scm_val hint) {
+scm_val     make_builtin(int flags, native_proc f, scm_val hint) {
     scm_val v = mkcell(PROCEDURE) ;
     v.c->flags = FL_BUILTIN | flags ;
     CAR(v).p = f ;
