@@ -125,7 +125,7 @@ scm_val     scm_alloc_cell(int type) ;
 
 void        die(const char *fmt, ...) ;
 
-void        gc_init(void) ;
+void        gc_init(void *p) ;
 void        gc_register(scm_val *v) ;
 
 #define ASSERT(x) if (!(x)) die("failed: %s, %d\n", __FILE__, __LINE__)
