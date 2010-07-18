@@ -43,8 +43,8 @@ Status
 Latest achievements:
     * **NBU Software proudly presents:** ``call-with-current-continuation`` 
       !
-    * ``read`` / ``print`` implement, Read-Eval-Print Loop reimplemented in 
-      scheme.
+    * ``read`` / ``print`` implemented, Read-Eval-Print Loop reimplemented 
+      in scheme.
     * some definitions (``set!``, ``define``, ``let``, ``if`` etc) 
       rewritten in scheme in prelude.scm, which is loaded automatically 
       during startup.
