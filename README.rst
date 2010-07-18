@@ -6,27 +6,24 @@
   Completely impractical exercise in reinventing  the wheel
 -------------------------------------------------------------
 
-**July 18, 2010: Oops, dates on my computer were screwed up for one day, 
-hence the commits timestamps were all wrong. I fixed it, and force-pushed 
-the changes to github. Unfortunately, if you cloned / fetched the 
-repository recently, you'll have to re-clone it again now -- merges / 
-rebases will not work otherwise.**
+.. Caution:: July 18, 2010: Oops, dates on my computer were screwed up for 
+   one day, hence the commits timestamps were all wrong. I fixed it, and 
+   force-pushed the changes to github. Unfortunately, if you cloned / 
+   fetched the repository recently, you'll have to re-clone it again now -- 
+   merges / rebases will not work otherwise.
 
 Rationale
 =========
 
-This project is inspired by `this series of blog posts 
-<http://avva.livejournal.com/2244437.html>`_ by Anatoly Vorobey (the link 
-is in Russian).
+This project is inspired by `this series of blog posts`_ by Anatoly Vorobey 
+(the link is in Russian).
 
 Scheme implementations are a dime a dozen these days. In fact, the best 
-ones are even free. (My personal favorite is `Chicken Scheme 
-<http://callcc.org/>`_). Nobody needs another scheme interpreter, not even 
-me. So why write it? For fun, obviously. Besides, sometimes I think every 
-programmer should implement some kind of Lisp at least once -- and no, 
-suffering the effects of `10th Greenspun Rule 
-<http://en.wikipedia.org/wiki/Greenspun's_Tenth_Rule>`_ doesn't give you a 
-free pass.
+ones are even free. (My personal favorite is `Chicken Scheme`_ ). Nobody 
+needs another scheme interpreter, not even me. So why write it? For fun, 
+obviously. Besides, sometimes I think every programmer should implement 
+some kind of Lisp at least once -- and no, suffering the effects of `10th 
+Greenspun Rule`_ doesn't give you a free pass.
 
 So. The plan is to implement a relatively straightforward Scheme 
 interpreter in C. I plan to keep C codebase as small as possible -- maybe 
@@ -40,9 +37,9 @@ collection).
 Status
 ======
 
-**Update: July 18, 2010: The minimum viable feature set implemented. It's 
-rough around the edges, but all the big things are in place and seem to 
-work. Took me 5 days to get here, by git log.**
+.. Note:: **July 18, 2010**: The minimum viable feature set implemented.  
+   It's rough around the edges, but all the big things are in place and 
+   seem to work. Took me 5 days to get here, by git log.
 
 Latest achievements:
     * NBU Software proudly presents: Mark-and-sweep stop-the-world 
@@ -69,15 +66,15 @@ Design
 Interpreter
 -----------
 
-As of now, it's a more or less vanilla SECD [SECD]_ machine, modified for
+As of now, it's a more or less vanilla SECD [1]_ machine, modified for
 varargs, special forms and tail calls elimination. Modifications are as 
 follows:
 
 * Stack is not a simple list, but a list of lists. ``apply`` removes the 
   top list of the stack (so we can support varargs).
-* Some PROCEDUREs are marked FL_SYNTAX. When SECD machine detects
+* Some ``PROCEDURE``\s are marked ``FL_SYNTAX``. When SECD machine detects
   a syntax call (takes some look-ahead), arguments are not evaluated.
-  Also, if FL_EVAL flag is set for syntax, the return value of the 
+  Also, if ``FL_EVAL`` flag is set for syntax, the return value of the 
   procedure is queued up for re-evaluation.
 * When a tail call is detected, new dump frames allocation is skipped 
   in ``apply``.
@@ -100,7 +97,8 @@ to enforce.
 | <24 or 56 bits of data><6 bits of tag>10 | Extended tag (next 6 bits)  |
 +------------------------------------------+-----------------------------+
 
-Primitive types are: CHAR, BOOL, FIXNUM, SYMBOL, SPECIAL.
+Primitive types are: ``CHAR``, ``BOOL``, ``FIXNUM``, ``SYMBOL``, 
+``SPECIAL``.
 
 LAMBDA [the ultimate failure] (tm)
 ----------------------------------
@@ -114,13 +112,13 @@ DEFINITION for non-BUILTIN
 DEFINITION for BUILTIN
   is a cons(CFUNC, hint)
 CFUNC
-  is an ``scm_val (\*cfunc)(scm_val params, <SECD machine ptr>, scm_val 
+  is an ``scm_val (*cfunc)(scm_val params, <SECD machine ptr>, scm_val 
   hint)``
 
 Continuations
 -------------
 
-In SECD machine [SECD]_, continuation is the content of dump register. So, 
+In SECD machine [1]_, continuation is the content of dump register. So, 
 basically, we capture the state of SECD machine, and we can restore it 
 later.
 
@@ -135,12 +133,11 @@ done.
 Garbage Collection:
 -------------------
 
-Pretty naive tri-color mark-and-sweep `Garbage Collection 
-<http://en.wikipedia.org/wiki/Garbage_collection_(computer_science)>`_ 
-[GC]_. We do our own C stack walking to collect pointers referencing 
-something inside of our memory pool. GC provides ``gc_register()`` call to 
-notify GC about memory locations which may be of interest for GC. SECD 
-machine uses it to register ``S``, ``E``, ``C`` and ``D``.
+Pretty naive tri-color mark-and-sweep `Garbage Collection`_ [2]_. We do our 
+own C stack walking to collect pointers referencing something inside of our 
+memory pool. GC provides ``gc_register()`` call to notify GC about memory 
+locations which may be of interest for GC. SECD machine uses it to register 
+``S``, ``E``, ``C`` and ``D``.
 
 Braindump
 =========
@@ -158,7 +155,9 @@ TODO
 * Garbage Collection improvements:
     * unroll the unnecessary "scm-aware ``cons()``" code changes
     * ``gc_unregister()``
-    * memory management for blobs (like strings)
+    * memory management for blobs (like strings, file descriptors, etc) and 
+      vectors
+    * a better than ``O(N**2)`` gray set data structure
 * Error handling (probably via error continuation?)
 * More builtin primitives
 * Bootstrap prelude.scm further
@@ -172,8 +171,19 @@ bootstrapping.
 
 References
 ==========
-.. [SECD] `A Rational Deconstruction of Landin's SECD Machine
+.. _Chicken Scheme: http://callcc.org/
+
+.. _Garbage Collection: 
+   http://en.wikipedia.org/wiki/Garbage_collection_(computer_science)
+
+.. _this series of blog posts: http://avva.livejournal.com/2244437.html
+
+.. _10th Greenspun Rule: 
+   http://en.wikipedia.org/wiki/Greenspun's_Tenth_Rule
+
+.. [1] `A Rational Deconstruction of Landin's SECD Machine
    <www.brics.dk/~danvy/DSc/27_BRICS-RS-03-33.pdf>`_
-.. [GC] `Wikipedia: Garbage collection (computer science) # Tri-color
+
+.. [2] `Wikipedia: Garbage collection (computer science) # Tri-color
    marking
    <http://en.wikipedia.org/wiki/Garbage_collection_(computer_science)#Tri-colour_marking>`_
