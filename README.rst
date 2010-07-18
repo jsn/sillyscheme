@@ -22,8 +22,8 @@ Scheme implementations are a dime a dozen these days. In fact, the best
 ones are even free. (My personal favorite is `Chicken Scheme`_ ). Nobody 
 needs another scheme interpreter, not even me. So why write it? For fun, 
 obviously. Besides, sometimes I think every programmer should implement 
-some kind of Lisp at least once -- and no, suffering the effects of `10th 
-Greenspun Rule`_ doesn't give you a free pass.
+some kind of Lisp at least once -- and no, suffering the effects of 
+`Greenspun's 10th Rule`_ doesn't give you a free pass.
 
 So. The plan is to implement a relatively straightforward Scheme 
 interpreter in C. I plan to keep C codebase as small as possible -- maybe 
@@ -82,13 +82,13 @@ follows:
 Internal Representation
 -----------------------
 
-Tagged values. scm_val is C ``long``. Lower 2 bits define the semantics of 
-the upper 30 / 62 bits as follows. We rely on the cell allocator to always 
-align cells on 4-byte boundary. Since we have our own allocator, it's easy 
-to enforce.
+Tagged values. ``scm_val`` is C ``long``. Lower 2 bits define the semantics 
+of the upper 30 / 62 bits as follows. We rely on the cell allocator to 
+always align cells on 4-byte boundary. Since we have our own allocator, 
+it's easy to enforce.
 
 +------------------------------------------+-----------------------------+
-|  Machine word bit values                 |        scm_val type         |
+|  Machine word bit values                 |     ``scm_val`` type        |
 +==========================================+=============================+
 |  <30 or 62 bits of pointer>00            | Cell ptr, type info in cell |
 +------------------------------------------+-----------------------------+
@@ -127,7 +127,7 @@ Special forms:
 
 I admittedly don't understand macros well. For now, ``quasiquote`` is 
 implemented, and hooked up as the mechanism for user-defined macros. It 
-cons()-es like there's no tomorrow, of course, but hey, it gets the job 
+``cons()``-es like there's no tomorrow, of course, but hey, it gets the job 
 done.
 
 Garbage Collection:
@@ -153,11 +153,12 @@ TODO
 =====
 
 * Garbage Collection improvements:
-    * unroll the unnecessary "scm-aware ``cons()``" code changes
-    * ``gc_unregister()``
-    * memory management for blobs (like strings, file descriptors, etc) and 
-      vectors
-    * a better than ``O(N**2)`` gray set data structure
+
+  * unroll the unnecessary "scm-aware ``cons()``" code changes
+  * ``gc_unregister()``
+  * memory management for blobs (like strings, file descriptors, etc) and 
+    vectors
+  * a better than ``O(N**2)`` gray set data structure
 * Error handling (probably via error continuation?)
 * More builtin primitives
 * Bootstrap prelude.scm further
@@ -178,7 +179,7 @@ References
 
 .. _this series of blog posts: http://avva.livejournal.com/2244437.html
 
-.. _10th Greenspun Rule: 
+.. _Greenspun's 10th Rule: 
    http://en.wikipedia.org/wiki/Greenspun's_Tenth_Rule
 
 .. [1] `A Rational Deconstruction of Landin's SECD Machine
