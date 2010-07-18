@@ -40,14 +40,16 @@ collection).
 Status
 ======
 
+**Update: July 18, 2010: I think I've got the minimum viable feature set 
+implemented. It's rough around the edges, but all the big things are in 
+place and seem to work. Took me 5 days to get here, by git log.**
+
 Latest achievements:
-    * **NBU Software proudly presents:** ``call-with-current-continuation`` 
-      !
+    * NBU Software proudly presents: Mark-and-sweep stop-the world 
+      **Garbage Collection** !
+    * ``call-with-current-continuation`` works.
     * ``read`` / ``print`` implemented, Read-Eval-Print Loop reimplemented 
       in scheme.
-    * some definitions (``set!``, ``define``, ``let``, ``if`` etc) 
-      rewritten in scheme in prelude.scm, which is loaded automatically 
-      during startup.
 
 What works:
     * Some builtin arithmetics (fixnum and double), list functions.
@@ -56,9 +58,9 @@ What works:
     * Lexical bindings.
     * Tail-call elimination works.
     * ``quasiquote`` and user defined macros.
+    * Automatic memory management / Garbage Collection.
 
 What doesn't:
-    * No memory management yet.
     * Error handling is just not there.
 
 Design
@@ -88,15 +90,15 @@ the upper 29 bits as follows. We rely on the cell allocator to always align
 cells on 4-byte boundary. Since we have our own allocator, it's easy to 
 enforce.
 
-   +----------------------------+-----------------------------------------+
-   |  Machine word bit values   |        scm_val type                     |
-   +============================+=========================================+
-   |    <29 or 61 bits of ptr>00| Cell ptr, type info in cell             |
-   +----------------------------+-----------------------------------------+
-   |  <31 or 63 bits of fixnum>1| Fixnum                                  |
-   +----------------------------+-----------------------------------------+
-   | <24 or 56 bits of data><6 bits of tag>10| Extended tag (next 6 bits) |
-   +----------------------------+-----------------------------------------+
+   +------------------------------------------+-----------------------------+
+   |  Machine word bit values                 |        scm_val type         |
+   +==========================================+=============================+
+   |    <29 or 61 bits of ptr>00              | Cell ptr, type info in cell |
+   +------------------------------------------+-----------------------------+
+   |  <31 or 63 bits of fixnum>1              | Fixnum                      |
+   +------------------------------------------+-----------------------------+
+   | <24 or 56 bits of data><6 bits of tag>10 | Extended tag (next 6 bits)  |
+   +------------------------------------------+-----------------------------+
 
 Primitive types are: CHAR, BOOL, FIXNUM, SYMBOL, SPECIAL.
 
@@ -128,6 +130,14 @@ I admittedly don't understand macros well. For now, ``quasiquote`` is
 implemented, and hooked up as the mechanism for user-defined macros. It 
 cons()-es like there's no tomorrow, of course.
 
+Garbage Collection:
+-------------------
+
+Pretty naive tri-color mark-and-sweep `Garbage Collection 
+<http://en.wikipedia.org/wiki/Garbage_collection_(computer_science)>`_ 
+[#GC]_. We do our own C stack walking to collect pointers referencing 
+something inside of our memory pool.
+
 Braindump
 =========
 
@@ -141,7 +151,6 @@ Braindump
 TODO
 =====
 
-* Garbage collection
 * Error handling (probably via error continuation?)
 * More builtin primitives
 * Bootstrap prelude.scm further
@@ -149,9 +158,12 @@ TODO
 Next up:
 --------
 No idea yet, some code cleanup is due, I guess.
-After that, memory management and scheme bootstrapping.
+After that, memory management improvements, error handling and scheme 
+bootstrapping.
 
 References
 ==========
 .. [#SECD] `A Rational Deconstruction of Landin's SECD Machine 
    <www.brics.dk/~danvy/DSc/27_BRICS-RS-03-33.pdf>`_
+.. [#GC] `Wikipedia: Garbage collection (computer science) # Tri-color 
+   marking <http://en.wikipedia.org/wiki/Garbage_collection_(computer_science)#Tri-colour_marking>`_

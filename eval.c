@@ -7,6 +7,10 @@ Silly       scm_create_evaluator(void) {
     scm->e = env_create(NIL) ;
     scm->c = NIL ;
     scm->d = NIL ;
+    gc_register(&(scm->s)) ;
+    gc_register(&(scm->e)) ;
+    gc_register(&(scm->c)) ;
+    gc_register(&(scm->d)) ;
     scm->fp_i = stdin ;
     scm->fp_o = stdout ;
     scm->fp_e = stderr ;

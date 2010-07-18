@@ -6,8 +6,8 @@
 
 enum scm_types {                                /* i-something */
     NONE, FIXNUM, CHAR, BOOL, SYMBOL, SPECIAL,  /* immediate */ 
-    CONS, FLOAT, STRING,                        /* indirection */
-    PROCEDURE, CONTINUATION                     /* immaterial */
+    FLOAT, STRING, CONS,                        /* indirection */
+    PROCEDURE, CONTINUATION, GC_NODE            /* immaterial */
 } ;
 
 #define L_TAG(x) \
@@ -53,6 +53,8 @@ struct cell {
 #define FL_BUILTIN  (1 << 0)
 #define FL_SYNTAX   (1 << 1)
 #define FL_EVAL     (1 << 2)
+#define FL_GC_BLACK (1 << 3)
+#define FL_GC_GRAY  (1 << 4)
 
 struct scm_scanner ;
 
@@ -122,6 +124,9 @@ scm_val     fn_apply_cc(scm_val args, Silly scm, scm_val hint) ;
 scm_val     scm_alloc_cell(int type) ;
 
 void        die(const char *fmt, ...) ;
+
+void        gc_init(void) ;
+void        gc_register(scm_val *v) ;
 
 #define ASSERT(x) if (!(x)) die("failed: %s, %d\n", __FILE__, __LINE__)
 #define ENSURE(x, msg) if (!(x)) die(msg)
