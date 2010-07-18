@@ -6,6 +6,12 @@ SILLY SCHEME:
 Completely impractical exercise in reinventing  the wheel
 ---------------------------------------------------------
 
+**July 18, 2010: Oops, dates on my computer were screwed up for one day, 
+hence the commits timestamps were all wrong. I fixed it, and force-pushed 
+the changes to github. Unfortunately, if you cloned / fetched the 
+repository recently, you'll have to re-clone it again now -- merges / 
+rebases will not work otherwise.**
+
 Rationale
 =========
 
