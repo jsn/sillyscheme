@@ -44,14 +44,11 @@ scm_val     assq(scm_val alist, scm_val key) {
 }
 
 int         type_of(scm_val v) {
-    return TAG(v) == 0 ?
-        (NULL_P(v) ? NONE : v.c->type) : TAG(v) ;
+    return TAG(v) ? TAG(v) : (NULL_P(v) ? NONE : v.c->type) ;
 }
 
 scm_val     cons(scm_val car, scm_val cdr) {
-    scm_val v ;
-    ENSURE(v.c = malloc(sizeof(struct cell)), "malloc()") ;
-    v.c->type = CONS ;
+    scm_val v = scm_alloc_cell(CONS) ;
     CAR(v) = car ;
     CDR(v) = cdr ;
     return v ;

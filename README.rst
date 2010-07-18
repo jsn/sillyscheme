@@ -76,10 +76,21 @@ follows:
 
 Internal Representation
 -----------------------
-Tagged values. scm_val is C ``long``. Lower 3 bits are tags for primitive
-types, higher bits are used for pointers in non-primitive types. We rely
-on allocation policy granting 8-byte alignment. When memory management is
-implemented, this policy will be enforced by allocator.
+
+Tagged values. scm_val is C ``long``. Lower 3 bits define the semantics of 
+the upper 29 bits as follows. We rely on the cell allocator to always align 
+cells on 4-byte boundary. Since we have our own allocator, it's easy to 
+enforce.
+
+   +----------------------------+-----------------------------------------+
+   |  Machine word bit values   |        scm_val type                     |
+   +============================+=========================================+
+   |    <29 or 61 bits of ptr>00| Cell ptr, type info in cell             |
+   +----------------------------+-----------------------------------------+
+   |  <31 or 63 bits of fixnum>1| Fixnum                                  |
+   +----------------------------+-----------------------------------------+
+   | <24 or 56 bits of data><6 bits of tag>10| Extended tag (next 6 bits) |
+   +----------------------------+-----------------------------------------+
 
 Primitive types are: CHAR, BOOL, FIXNUM, SYMBOL, SPECIAL.
 
@@ -97,32 +108,24 @@ DEFINITION for BUILTIN
 CFUNC
   is an ``scm_val (\*cfunc)(scm_val params, scm_val env, scm_val hint)``
 
+Continuations
+-------------
+
+In SECD machine [#SECD]_, continuation is the content of dump register. So, 
+basically, we capture the state of SECD machine, and we can restore it 
+later.
+
 Special forms:
 --------------
 
 I admittedly don't understand macros well. For now, ``quasiquote`` is 
-implemented, and hooked up as the mechanism for user-defined macros.
+implemented, and hooked up as the mechanism for user-defined macros. It 
+cons()-es like there's no tomorrow, of course.
 
 Braindump
 =========
 
-1. Tagging. Apparently, in a hindsight, 8-byte alignment requirement sucks.  
-   Especially since ``sizeof(struct cell)`` is 12 on 32-bit and 20 on 64 
-   bit. So, maybe we should change the tagging scheme. Something like this:
-
-   +-------------+----------------------------+
-   | Lower 2bits | Type                       |
-   +=============+============================+
-   |     00      | Cell ptr                   |
-   +-------------+----------------------------+
-   |     10      | Fixnum (even)              |
-   +-------------+----------------------------+
-   |     11      | Fixnum (odd)               |
-   +-------------+----------------------------+
-   |     01      | Extended tag (next 6 bits) |
-   +-------------+----------------------------+
-
-2. Memory management: we can try to force every non-cell blob object (like
+1. Memory management: we can try to force every non-cell blob object (like
    string data) to be always pointed at by exactly one cell. Then we get a 
    pool for cells and another pool for blobs. Objects in cell pool can be 
    garbage-collected trivially (walking C-stack may be necessary, though), 

@@ -1,5 +1,5 @@
 CFLAGS = -Wall # -O3 -fomit-frame-pointer
-OBJS =  scanner.o value.o parse.o env.o eval.o builtin.o
+OBJS =  scanner.o value.o parse.o env.o eval.o builtin.o memory.o
 HEADERS = scanner.h scheme.h
 LIBS = -lfl
 

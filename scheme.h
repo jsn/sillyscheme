@@ -10,10 +10,16 @@ enum scm_types {                                /* i-something */
     PROCEDURE, CONTINUATION                     /* immaterial */
 } ;
 
-#define TAGBITS     3
-#define TAG(x)      ((x).l & 7)
-#define MKTAG(l, t) ((scm_val)(((long)(l) << TAGBITS) | t))
-#define UNTAG(x)    ((x).l >> TAGBITS)
+#define L_TAG(x) \
+    ((x & 3) == 0 ? 0L : (x & 1) == 1 ? 1L : ((0xff & x) >> 2))
+#define MKTAG(v, t) \
+    ((scm_val)(long)(t == 1 ? ((v << 1) | 1) : ((v << 8) | (t << 2) | 2)))
+#define L_UNTAG(x) \
+    ((x & 1) == 1 ? (x >> 1) : (x >> 8))
+
+#define TAGBITS     2
+#define TAG(v)      L_TAG((v).l)
+#define UNTAG(v)    L_UNTAG((v).l)
 
 union _scm_val {
     long        l ;
@@ -112,6 +118,8 @@ scm_val     reverse_append(scm_val args, scm_val head) ;
 scm_val     fn_eval(scm_val args, Silly scm, scm_val hint) ;
 scm_val     fn_capture_cc(scm_val args, Silly scm, scm_val hint) ;
 scm_val     fn_apply_cc(scm_val args, Silly scm, scm_val hint) ;
+
+scm_val     scm_alloc_cell(int type) ;
 
 void        die(const char *fmt, ...) ;
 

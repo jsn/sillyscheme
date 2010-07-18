@@ -110,44 +110,40 @@ void        scm_print(scm_val v, FILE *fp) {
 
     if (LIST_P(v)) return print_list(v, fp, 0) ;
 
-    switch(TAG(v)) {
+    switch(type_of(v)) {
         case BOOL:    fprintf(fp, "#%c", UNTAG(v) ? 't' : 'f') ; break ;
         case FIXNUM:  fprintf(fp, "%ld", UNTAG(v)) ;             break ;
         case SYMBOL:  fprintf(fp, "%s", sym_to_string(v)) ;      break ;
         case SPECIAL: fprintf(fp, "#<special %ld>", UNTAG(v)) ;  break ;
+        case FLOAT:   fprintf(fp, "%f", v.c->data.f) ;           break ;
+        case STRING:  fprintf(fp, "\"%s\"", (char *)CAR(v).p) ;  break ;
+        case CONTINUATION: fprintf(fp, "#<continuation [%p]>", v.p) ; break ;
+
         case CHAR: {
             int c = UNTAG(v) ;
             if (c < 0) fprintf(fp, "#!eof") ;
             else fprintf(fp, "#\\%c", c) ;
             break ;
         }
-        default: {
-            switch (v.c->type) {
-                case FLOAT: fprintf(fp, "%f", v.c->data.f) ; break ;
-                case STRING: fprintf(fp, "\"%s\"", (char *)CAR(v).p) ; break ;
-                case CONTINUATION:
-                    fprintf(fp, "#<continuation [%p]>", v.p) ; break ;
 
-                case PROCEDURE:
-                    fprintf(fp, "#<%s%s ",
-                            ((v.c->flags & FL_BUILTIN) ? "builtin " : ""),
-                            ((v.c->flags & FL_SYNTAX) ? "syntax" :"procedure"));
-                    if (v.c->flags & FL_BUILTIN) {
-                        if (NULL_P(CDR(v)))
-                            fprintf(fp, "[%p]", CAR(v).p) ;
-                        else {
-                            fprintf(fp, "(") ;
-                            scm_print(CDR(v), fp) ;
-                            fprintf(fp, ")") ;
-                        }
-                    }
-                    else
-                        scm_print(CAR(v), fp) ;
-                    fprintf(fp, ">") ;
-                    break ;
-
-                default: die("unknown cell type %d\n", v.c->type) ;
+        case PROCEDURE:
+            fprintf(fp, "#<%s%s ",
+                    ((v.c->flags & FL_BUILTIN) ? "builtin " : ""),
+                    ((v.c->flags & FL_SYNTAX) ? "syntax" :"procedure"));
+            if (v.c->flags & FL_BUILTIN) {
+                if (NULL_P(CDR(v)))
+                    fprintf(fp, "[%p]", CAR(v).p) ;
+                else {
+                    fprintf(fp, "(") ;
+                    scm_print(CDR(v), fp) ;
+                    fprintf(fp, ")") ;
+                }
             }
-        }
+            else
+                scm_print(CAR(v), fp) ;
+            fprintf(fp, ">") ;
+            break ;
+
+        default: die("unknown cell type %d\n", v.c->type) ;
     }
 }
