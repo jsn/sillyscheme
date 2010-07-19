@@ -141,6 +141,16 @@ scm_val     reverse_append(scm_val args, scm_val head) {
 }
 
 DEFINE_FUNC(fn_reverse) { return reverse_append(CAR(args), NIL) ; }
+DEFINE_FUNC(fn_eq_p) { return EQ_P(CAR(args), CADR(args)) ? TRUE : FALSE ; }
+DEFINE_FUNC(fn_number_p) {
+    int i = type_of(CAR(args)) ;
+    return (i == FIXNUM || i == FLOAT) ? TRUE : FALSE ;
+}
+DEFINE_FUNC(fn_inexact_p) { return type_of(CAR(args)) == FLOAT ? TRUE : FALSE ;}
+DEFINE_FUNC(fn_symbol_p) { return TAG(CAR(args)) == SYMBOL ? TRUE : FALSE ;}
+DEFINE_FUNC(fn_string_p) { return type_of(CAR(args)) == STRING ? TRUE : FALSE ;}
+DEFINE_FUNC(fn_char_p) { return TAG(CAR(args)) == CHAR ? TRUE : FALSE ;}
+DEFINE_FUNC(fn_string_to_symbol) { return intern(CAAR(args).p) ; }
 
 DEFINE_FUNC(fn_car) { return CAR(CAR(args)) ; }
 DEFINE_FUNC(fn_cdr) { return CDR(CAR(args)) ; }
@@ -266,6 +276,7 @@ void        define_toplevels(scm_val env) {
     DEF_PROC_CHAR("-", fn_foldl_arith, '-') ;
     DEF_PROC_CHAR("*", fn_foldl_arith, '*') ;
     DEF_PROC_CHAR("/", fn_foldl_arith, '/') ;
+    DEF_PROC_CHAR("%", fn_foldl_arith, '%') ;
     DEF_PROC_CHAR("=", fn_foldl_cmp, '=') ;
     DEF_PROC_CHAR(">", fn_foldl_cmp, '>') ;
     DEF_PROC_CHAR(">=", fn_foldl_cmp, 'g') ;
@@ -299,6 +310,13 @@ void        define_toplevels(scm_val env) {
     DEF_PROC("eval", fn_eval) ;
     DEF_PROC("capture/cc", fn_capture_cc) ;
     DEF_PROC("apply/cc", fn_apply_cc) ;
+    DEF_PROC("eq?", fn_eq_p) ;
+    DEF_PROC("number?", fn_number_p) ;
+    DEF_PROC("inexact?", fn_inexact_p) ;
+    DEF_PROC("symbol?", fn_symbol_p) ;
+    DEF_PROC("string?", fn_string_p) ;
+    DEF_PROC("char?", fn_char_p) ;
+    DEF_PROC("string->symbol", fn_string_to_symbol) ;
 
     DEF_SYNTAX("quote", 0, syn_quote) ;
     DEF_SYNTAX("quasiquote", FL_EVAL, syn_quasiquote) ;

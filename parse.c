@@ -135,7 +135,10 @@ void        scm_print(scm_val v, FILE *fp) {
                     fprintf(fp, "[%p]", CAR(v).p) ;
                 else {
                     fprintf(fp, "(") ;
-                    scm_print(CDR(v), fp) ;
+                    if (TAG(CDR(v)) == CHAR)
+                        fputc(UNTAG(CDR(v)), fp) ;
+                    else
+                        scm_print(CDR(v), fp) ;
                     fprintf(fp, ")") ;
                 }
             }
