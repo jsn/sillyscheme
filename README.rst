@@ -183,7 +183,7 @@ References
    http://en.wikipedia.org/wiki/Greenspun's_Tenth_Rule
 
 .. [1] `A Rational Deconstruction of Landin's SECD Machine
-   <www.brics.dk/~danvy/DSc/27_BRICS-RS-03-33.pdf>`_
+   <http://www.brics.dk/~danvy/DSc/27_BRICS-RS-03-33.pdf>`_
 
 .. [2] `Wikipedia: Garbage collection (computer science) # Tri-color
    marking
