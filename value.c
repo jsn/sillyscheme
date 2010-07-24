@@ -43,10 +43,6 @@ scm_val     assq(scm_val alist, scm_val key) {
     return FALSE ;
 }
 
-int         type_of(scm_val v) {
-    return TAG(v) ? TAG(v) : (NULL_P(v) ? NONE : v.c->type) ;
-}
-
 scm_val     cons(scm_val car, scm_val cdr) {
     scm_val v = scm_alloc_cell(CONS) ;
     CAR(v) = car ;

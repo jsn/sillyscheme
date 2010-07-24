@@ -21,6 +21,8 @@ enum scm_types {                                /* i-something */
 #define TAG(v)      L_TAG((v).l)
 #define UNTAG(v)    L_UNTAG((v).l)
 
+#define type_of(v) (TAG(v) ? TAG(v) : (NULL_P(v) ? NONE : (v).c->type))
+
 union _scm_val {
     long        l ;
     void        *p ;
@@ -75,7 +77,6 @@ void        scm_print(scm_val v, FILE *fp) ;
 
 scm_val     intern(const char *s) ;
 const char  *sym_to_string(scm_val v) ;
-int         type_of(scm_val v) ;
 
 #define     CELL(v, t, car_, cdr_) v = cons(car_, cdr_) ; v.c->type = t
 
