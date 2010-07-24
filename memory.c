@@ -4,16 +4,16 @@
 
 static struct cell  cells[MAX_CELLS] ;
 static size_t       ncells ;
-static void         **stack_start ;
+static scm_val      *stack_start ;
 static int          stack_dir ;
 static scm_val      roots ;
 static scm_val      free_list ;
 
-static void **stack(void) { void **p = (void **)&p ; return p ; }
+static scm_val *stack(void) { scm_val *p = (scm_val *)&p ; return p ; }
 
 void        gc_init(void *p) {
-    stack_dir = (stack() - (void **)p) > 0 ? 1 : -1 ;
-    stack_start = (void **)p - 10 * stack_dir ;
+    stack_dir = (stack() - (scm_val *)p) > 0 ? 1 : -1 ;
+    stack_start = (scm_val *)p - 10 * stack_dir ;
     // printf("stack at %p, stack dir is %d\n", stack_start, stack_dir) ;
 }
 
@@ -25,21 +25,21 @@ void        gc_register(scm_val *root) {
 }
 
 #define IN_RANGE(p)  \
-    ((p) >= (void *)cells && \
-     (p) <  (void *)(cells + ncells) && \
-     (((long)(p) - (long)(cells)) % sizeof(*cells) == 0))
+    ((p).c >= cells && \
+     (p).c <  (cells + ncells) && \
+     (((p).l - (long)(cells)) % sizeof(*cells) == 0))
 
 #define PTR_AND_NO_FLAG(v, flag) \
-    (TAG(v) == 0 && IN_RANGE((v).p) && ((v).c->flags & (flag)) == 0)
+    (TAG(v) == 0 && IN_RANGE(v) && ((v).c->flags & (flag)) == 0)
 
 static void gc_start(void) {
-    void    **p ;
+    scm_val    *p ;
     scm_val v ;
     size_t  sc = 0, rc = 0 ;
 
-    for (p = stack_start; p != (void **)&p; p += stack_dir)
+    for (p = stack_start; p != (scm_val *)&p; p += stack_dir)
         if (IN_RANGE(*p)) {
-            ((struct cell *)*p)->flags |= FL_GC_GRAY ;
+            (*p).c->flags |= FL_GC_GRAY ;
             sc ++ ;
         }
 
