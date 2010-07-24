@@ -5,3 +5,4 @@ runtests
 scanner.c
 scanner.h
 tags
+gmon.*

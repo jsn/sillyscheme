@@ -21,3 +21,7 @@ $(OBJS): $(HEADERS)
 
 clean:
 	rm  -f $(OBJS) $(TOPLEVEL) scanner.[ch] 
+
+stats: clean
+	echo `cat *.[chl] | wc -l` lines, \
+	    `cat *.[chl] | grep -v '^ *$$' | grep -v '^ */[\*/]' | wc -l` loc

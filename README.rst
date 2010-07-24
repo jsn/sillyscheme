@@ -42,23 +42,25 @@ Status
    seem to work. Took me 5 days to get here, by git log.
 
 Latest achievements:
-    * NBU Software proudly presents: Mark-and-sweep stop-the-world 
-      **Garbage Collection** !
-    * ``call-with-current-continuation`` works.
-    * ``read`` / ``print`` implemented, Read-Eval-Print Loop reimplemented 
-      in scheme.
-    * C source lines: **1107**, LoC: **923**.
+    * Mark-and-sweep stop-the-world Garbage Collection
+      * gray set implementation is more efficient now
+    * C source lines: **1134**, LoC: **942**.
 
 What works:
     * Some builtin arithmetics (fixnum and double), list functions.
-    * ``lambda`` works, non-builtin function calls work.
-    * Lexical bindings.
-    * Tail-call elimination works.
-    * ``quasiquote`` and user defined macros.
+    * ``lambda``, non-builtin function calls.
+    * Lexical scope.
+    * Tail-call elimination.
+    * ``quasiquote`` and user defined macros via ``defmacro``.
+    * ``call-with-current-continuation`` works.
+    * ``read`` / ``print`` implemented, Read-Eval-Print Loop reimplemented 
+      in scheme.
     * Automatic memory management / Garbage Collection.
 
 What doesn't:
     * Error handling is just not there.
+    * vectors
+    * syntax-rules
 
 Design
 ======
@@ -158,7 +160,6 @@ TODO
   * ``gc_unregister()``
   * memory management for blobs (like strings, file descriptors, etc) and 
     vectors
-  * a better than ``O(N**2)`` gray set data structure
 * Error handling (probably via error continuation?)
 * More builtin primitives
 * Bootstrap prelude.scm further

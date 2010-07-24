@@ -113,7 +113,6 @@ scm_val     scm_apply(scm_val args, Silly scm, scm_val hint) {
 
 scm_val         fn_eval(scm_val args, Silly scm, scm_val hint) {
     scm_push(scm, cons(CAR(args), NIL), scm->top_e, cons(S_EVAL, NIL)) ;
-    // scm->c = cons(S_EVAL, scm->c) ;
     return S_EVAL ;
 }
 
